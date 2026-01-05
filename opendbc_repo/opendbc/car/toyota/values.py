@@ -39,14 +39,14 @@ class CarControllerParams:
     if CP.flags & ToyotaFlags.RAISED_ACCEL_LIMIT:
       self.ACCEL_MAX = 2.0
     else:
-      self.ACCEL_MAX = 1.5  # m/s2, lower than allowed 2.0 m/s^2 for tuning reasons
-    self.ACCEL_MIN = -3.5  # m/s2
+      self.ACCEL_MAX = 1.8  # m/s2, lower than allowed 2.0 m/s^2 for tuning reasons  1.5
+    self.ACCEL_MIN = -3.8  # m/s2   3.5
 
     if CP.lateralTuning.which() == 'torque':
       self.STEER_DELTA_UP = 15       # 1.0s time to peak torque
       self.STEER_DELTA_DOWN = 25     # always lower than 45 otherwise the Rav4 faults (Prius seems ok with 50)
     else:
-      self.STEER_DELTA_UP = 10       # 1.5s time to peak torque
+      self.STEER_DELTA_UP = 11       # 1.5s time to peak torque 方向盤反映稍微快一點10
       self.STEER_DELTA_DOWN = 25     # always lower than 45 otherwise the Rav4 faults (Prius seems ok with 50)
 
 
