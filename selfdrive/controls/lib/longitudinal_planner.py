@@ -69,8 +69,9 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 
 
 class LongitudinalPlanner:
-  def __init__(self, CP, init_v=0.0, init_a=0.0, dt=DT_MDL):
+  def __init__(self, CP, init_v=0.0, init_a=0.0, dt=DT_MDL, dynamic_follow_active=False):
     self.CP = CP
+    self._dynamic_follow_active = dynamic_follow_active
     self.mpc = LongitudinalMpc(dt=dt)
     # TODO remove mpc modes when TR released
     self.mpc.mode = 'acc'
@@ -128,8 +129,10 @@ class LongitudinalPlanner:
 
     if len(sm['carControl'].orientationNED) == 3:
       accel_coast = get_coast_accel(sm['carControl'].orientationNED[1])
+      pitch_rad = sm['carControl'].orientationNED[1]
     else:
       accel_coast = ACCEL_MAX
+      pitch_rad = 0.0
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = min(sm['carState'].vCruise, V_CRUISE_MAX)
@@ -204,7 +207,8 @@ class LongitudinalPlanner:
         accel_bounds[i, 0] = max(accel_clip[0], a_min_dtsc[i])  # a_min
         accel_bounds[i, 1] = min(accel_clip[1], a_max_dtsc[i])  # a_max
 
-    self.mpc.update(radar_state, v_cruise, x, v, a, j, personality=personality, accel_bounds=accel_bounds)
+    self.mpc.update(radar_state, v_cruise, x, v, a, j, personality=personality, accel_bounds=accel_bounds,
+                    dynamic_follow=self._dynamic_follow_active and self.CP.openpilotLongitudinalControl, pitch_rad=pitch_rad)
 
     self.v_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC, self.mpc.a_solution)

@@ -79,6 +79,23 @@ def get_T_FOLLOW(personality=log.LongitudinalPersonality.standard):
   else:
     raise NotImplementedError("Longitudinal personality not supported")
 
+def get_dynamic_follow(v_ego, personality=log.LongitudinalPersonality.standard):
+  # TOP01003 donor: CT921/openpilot 615799f95e978fbf643d1e762d605b4d5b06499f.
+  # The Dynamic follow function is adjusted by Marc(cgw1968-5779).
+  if personality == log.LongitudinalPersonality.relaxed:
+    x_vel = [0., 6, 10., 10.01, 15., 27.7]
+    y_dist = [1.2, 1.4, 1.4, 1.5, 1.65, 1.8]
+  elif personality == log.LongitudinalPersonality.standard:
+    x_vel = [0., 6, 10., 10.01, 15., 27.7]
+    y_dist = [1.1, 1.3, 1.35, 1.4, 1.4, 1.45]
+  elif personality == log.LongitudinalPersonality.aggressive:
+    x_vel = [0., 6, 10., 10.01, 15., 27.7]
+    y_dist = [1.0, 1.2, 1.0, 0.9, 0.95, 1.0]
+  else:
+    raise NotImplementedError("Dynamic Follow personality not supported")
+  return np.interp(v_ego, x_vel, y_dist)
+
+
 def get_stopped_equivalence_factor(v_lead):
   return (v_lead**2) / (2 * COMFORT_BRAKE)
 
@@ -327,8 +344,14 @@ class LongitudinalMpc:
     lead_xv = self.extrapolate_lead(x_lead, v_lead, a_lead, a_lead_tau)
     return lead_xv
 
-  def update(self, radarstate, v_cruise, x, v, a, j, personality=log.LongitudinalPersonality.standard, accel_bounds=None):
-    t_follow = get_T_FOLLOW(personality)
+  def update(self, radarstate, v_cruise, x, v, a, j, personality=log.LongitudinalPersonality.standard, accel_bounds=None,
+             dynamic_follow=False, pitch_rad=0.0):
+    if dynamic_follow:
+      t_follow = get_dynamic_follow(self.x0[1], personality)
+      if np.sin(pitch_rad) < -0.04:
+        t_follow += 0.5
+    else:
+      t_follow = get_T_FOLLOW(personality)
     v_ego = self.x0[1]
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 

@@ -17,7 +17,12 @@ def main():
   cloudlog.info("plannerd got CarParams: %s", CP.brand)
 
   ldw = LaneDepartureWarning()
-  longitudinal_planner = LongitudinalPlanner(CP)
+  # Reuse the session snapshot across plannerd restarts; lifecycle flags clear it.
+  dynamic_follow_active = params.get("HankDynamicFollowActive")
+  if dynamic_follow_active is None:
+    dynamic_follow_active = params.get_bool("HankDynamicFollow")
+    params.put_bool("HankDynamicFollowActive", dynamic_follow_active)
+  longitudinal_planner = LongitudinalPlanner(CP, dynamic_follow_active=dynamic_follow_active)
   pm = messaging.PubMaster(['longitudinalPlan', 'driverAssistance'])
   sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'liveParameters', 'radarState', 'modelV2', 'selfdriveState', 'maaControl'],
                            poll='modelV2', ignore_alive=['maaControl'])
