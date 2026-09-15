@@ -124,6 +124,8 @@ class LongitudinalPlanner:
       self.aem.update_states(model_msg=sm['modelV2'], radar_msg=sm['radarState'], v_ego=sm['carState'].vEgo)
       mode = self.aem.get_mode(mode)
 
+    self.mpc.mode = mode
+
     if len(sm['carControl'].orientationNED) == 3:
       accel_coast = get_coast_accel(sm['carControl'].orientationNED[1])
     else:
