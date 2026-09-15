@@ -190,19 +190,19 @@ class LongitudinalPlanner:
       radar_state = sm['radarState']
 
     # Apply DTSC curve speed constraints if enabled
+    accel_bounds = None
     if dp_flags & DPFlags.DTSC:
       # Get modified acceleration constraints based on curvature
       a_min_dtsc, a_max_dtsc = self.dtsc.get_mpc_constraints(
         sm['modelV2'], v_ego, accel_clip[0], accel_clip[1])
 
-      # Update MPC parameters with curve constraints
-      # This directly modifies the acceleration bounds in the MPC solver
+      accel_bounds = np.empty((len(a_min_dtsc), 2))
       for i in range(len(a_min_dtsc)):
         # Apply the more restrictive constraint
-        self.mpc.params[i, 0] = max(accel_clip[0], a_min_dtsc[i])  # a_min
-        self.mpc.params[i, 1] = min(accel_clip[1], a_max_dtsc[i])  # a_max
+        accel_bounds[i, 0] = max(accel_clip[0], a_min_dtsc[i])  # a_min
+        accel_bounds[i, 1] = min(accel_clip[1], a_max_dtsc[i])  # a_max
 
-    self.mpc.update(radar_state, v_cruise, x, v, a, j, personality=personality)
+    self.mpc.update(radar_state, v_cruise, x, v, a, j, personality=personality, accel_bounds=accel_bounds)
 
     self.v_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC, self.mpc.a_solution)

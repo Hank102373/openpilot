@@ -327,7 +327,7 @@ class LongitudinalMpc:
     lead_xv = self.extrapolate_lead(x_lead, v_lead, a_lead, a_lead_tau)
     return lead_xv
 
-  def update(self, radarstate, v_cruise, x, v, a, j, personality=log.LongitudinalPersonality.standard):
+  def update(self, radarstate, v_cruise, x, v, a, j, personality=log.LongitudinalPersonality.standard, accel_bounds=None):
     t_follow = get_T_FOLLOW(personality)
     v_ego = self.x0[1]
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
@@ -341,8 +341,18 @@ class LongitudinalMpc:
     lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1])
     lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1])
 
-    self.params[:,0] = ACCEL_MIN
-    self.params[:,1] = ACCEL_MAX
+    if accel_bounds is None:
+      self.params[:,0] = ACCEL_MIN
+      self.params[:,1] = ACCEL_MAX
+    else:
+      accel_bounds = np.asarray(accel_bounds, dtype=float)
+      if accel_bounds.shape != (N+1, 2):
+        raise ValueError(f'accel_bounds must have shape {(N+1, 2)}, got {accel_bounds.shape}')
+      if not np.all(np.isfinite(accel_bounds)):
+        raise ValueError('accel_bounds must contain only finite values')
+      if np.any(accel_bounds[:, 0] > accel_bounds[:, 1]):
+        raise ValueError('accel_bounds a_min must not exceed a_max')
+      self.params[:, :2] = accel_bounds
 
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
