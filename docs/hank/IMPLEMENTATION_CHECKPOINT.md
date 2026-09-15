@@ -1,5 +1,7 @@
 # HANK implementation checkpoint — IMPL-00
 
+> **Historical checkpoint:** This document preserves the audit state recorded before an executable WSL environment and runtime implementation were available. Its blockers and test status are historical evidence, not the current project state. See [CURRENT_STATE.md](CURRENT_STATE.md) for the durable state through E-001, E-002, and PORT-01.
+
 Date: 2026-09-14. Status: baseline/source audit complete; implementation and executable verification BLOCKED. Not a release or vehicle-validation approval.
 
 ## Authority and baseline
