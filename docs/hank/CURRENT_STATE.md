@@ -1,6 +1,6 @@
 # HANK current implementation state
 
-Updated: 2026-09-15. Scope: durable implementation and verification state through PORT-01. This is not a release or vehicle-validation approval.
+Updated: 2026-09-15. Scope: durable implementation and verification state through PORT-01 and the PORT-02 donor closure. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
@@ -92,9 +92,23 @@ Verification:
 
 Limits: T-002 C3X bench and V0/V1/V2/V3 validation have not run. The deterministic and solver-facing evidence does not approve vehicle deployment.
 
+### PORT-02 closure — Lead Pull-away donor freeze
+
+- Result: `PORT02_CLOSURE: READY_C`
+- Canonical donor: C / `CT921/openpilot`, branch `TOP096`
+- Donor commit: `3d75e471c74fccf0067dcda8cfe1374cf1268215`
+- Donor file: `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py`
+- Frozen function: `get_stopped_equivalence_factor(v_lead, v_ego)`
+
+The frozen C behavior uses a strict horizon-wide `np.all(v_lead - v_ego > 0)` trigger, offset gain 2, pre-taper cap 12 m, taper endpoint 26 km/h, and `COMFORT_BRAKE = 2.5` m/s². It uses MPC `self.x0[1]` for `v_ego`, applies independently to leadOne and leadTwo before obstacle/source selection, and applies the same transform to missing synthetic leads. The donor behavior has no added epsilon, stage-wise replacement, counter, hysteresis, or persistent state. Its horizon-wide discontinuity is intentional and frozen.
+
+The selected transform can preserve current HANK `STOP_DISTANCE`, `COMFORT_BRAKE = 2.5`, `PARAM_DIM = 6`, PORT-01 Dynamic Follow, E-001 `accel_bounds`, and E-002 mode synchronization. PORT-02 excludes donor stop-distance values and personality, `PARAM_DIM = 7`/`p[6]`, B `COMFORT_BRAKE = 1.75`, C `braking_offset`, C low-speed weight/jerk tuning, F-005 response tuning, donor Dynamic Follow and static `T_FOLLOW`, AccelController, donor planner/LongControl, Toyota interface/CarState/CarController, Panda, SecOC, cereal schema replacement, and radar implementation replacement.
+
+No PORT-02 production implementation has occurred. Source and deterministic closure is complete; native solver, C3X, vehicle, and deployment validation remain outstanding.
+
 ## Current blockers and limitations
 
-- F-003 / D-008 Lead Pull-away donor selection remains Provisional until field-level closure freezes the exact behavior.
+- F-003 / D-008 Lead Pull-away donor selection is frozen as C/TOP096; PORT-02 implementation has not started.
 - F-005 low-speed jerk / acceleration-response numerical decision remains unresolved.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
@@ -105,14 +119,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`PORT-02_CLOSURE` — freeze the F-003 Lead Pull-away donor before any implementation.
-
-Compare:
-
-- C / `TOP096` at `3d75e471c74fccf0067dcda8cfe1374cf1268215`
-- B / `TOP01003` at `615799f95e978fbf643d1e762d605b4d5b06499f`
-
-The closure must freeze the exact donor function, constants, trigger semantics, mixed-sign horizon behavior, lead-one/lead-two behavior, zero/missing/reacquired-lead behavior, low-speed taper, and dependency boundary. D-008 remains Provisional until that closure is accepted. Do not start PORT-02 implementation before the donor freeze.
+`PORT02_IMPLEMENTATION` — implement the frozen C/TOP096 stopped-equivalence/pull-away transform within the current HANK MPC boundary, with deterministic regression tests and without importing the explicit exclusions recorded in D-008.
 
 ## Commit map and rollback
 

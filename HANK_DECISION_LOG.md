@@ -185,13 +185,29 @@ Stop distance and comfort-brake dynamics are coupled in the math but are separat
 
 ---
 
-## D-008 — Lead pull-away donor is provisionally C / TOP096
+## D-008 — Lead pull-away donor is C / TOP096
 
-**Status:** Provisional  
+**Status:** Accepted
 **Date:** 2026-09-14
 
 **Decision**  
-Treat C/TOP096 as the current preferred donor for lead pull-away behavior, with B kept as comparison reference.
+Use C (`CT921/openpilot`, branch `TOP096`, commit `3d75e471c74fccf0067dcda8cfe1374cf1268215`) as the canonical PORT-02 donor for lead pull-away behavior. The frozen source is `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py`, function `get_stopped_equivalence_factor(v_lead, v_ego)`.
+
+The frozen behavior is:
+
+```python
+v_diff_offset = 0
+if np.all(v_lead - v_ego > 0):
+  v_diff_offset = np.clip((v_lead - v_ego) * 2, 0, 12)
+  v_diff_offset = np.maximum(
+    v_diff_offset * ((26 / 3.6 - v_ego) / (26 / 3.6)),
+    0,
+  )
+
+stopped_equivalence = v_lead**2 / (2 * 2.5) + v_diff_offset
+```
+
+The trigger is a strict, horizon-wide `np.all()` over `v_lead - v_ego > 0`. Gain is 2, the pre-taper offset cap is 12 m, the taper endpoint is 26 km/h, and `COMFORT_BRAKE` is 2.5 m/s². `v_ego` is MPC `self.x0[1]`. The transform is applied independently to leadOne and leadTwo before obstacle/source selection. Missing synthetic leads use the same transform. Do not replace the horizon-wide gate with stage-wise logic or add epsilon, counters, hysteresis, or state.
 
 **Reason**
 
@@ -200,8 +216,14 @@ The desired quick lead-departure response is closer to the older TOP behavior di
 **Constraint**  
 Only the required stopped-equivalence/pull-away behavior may be taken. Do not import C's old planner/LongControl generation.
 
-**Exit condition for Provisional status**  
-Freeze exact constants/function after the field-level dependency matrix and deterministic comparison are completed.
+PORT-02 explicitly excludes F-002 Stop Distance donor values, personality stop distance, `PARAM_DIM = 7`, `p[6]`, B `COMFORT_BRAKE = 1.75`, C `braking_offset`, C low-speed weight/jerk tuning, F-005 response tuning, donor Dynamic Follow, donor static `T_FOLLOW`, AccelController, donor planner, donor LongControl, Toyota interface/CarState/CarController, Panda, SecOC, cereal schema replacement, and radar implementation replacement.
+
+C stopped-equivalence can coexist with current HANK `STOP_DISTANCE`, `COMFORT_BRAKE = 2.5`, `PARAM_DIM = 6`, PORT-01 Dynamic Follow, E-001 `accel_bounds`, and E-002 mode synchronization.
+
+**Historical provenance and closure evidence**
+This decision was originally Provisional on 2026-09-14, with C as the preferred donor and B/TOP01003 as comparison reference. `PORT02_CLOSURE` completed the required field-level dependency analysis and deterministic comparisons and returned `READY_C`. B (`TOP01003`, commit `615799f95e978fbf643d1e762d605b4d5b06499f`) remains comparison evidence only.
+
+The source-level closure confirmed that the horizon-wide discontinuity is intentional donor behavior. It did not validate native solver output, C3X behavior, vehicle behavior, or deployment safety.
 
 ---
 
