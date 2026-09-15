@@ -229,7 +229,8 @@ The source-level closure confirmed that the horizon-wide discontinuity is intent
 
 ## D-009 — Acceleration Personality donor is B / TOP01003
 
-**Status:** Accepted architecture  
+**Status:** Accepted — PORT-03 field-level boundary frozen (`READY_B_ADAPTER`)
+
 **Date:** 2026-09-14
 
 **Decision**  
@@ -243,6 +244,37 @@ Use B `accel_personality` logic as the donor for acceleration personality.
 
 - Requiring B custom cereal schema solely to transport Toyota physical drive-mode state.
 - Replacing A Toyota controller to obtain this feature.
+
+**PORT-03 frozen closure**
+
+Canonical source is B (`CT921/openpilot`, branch `TOP01003`, commit `615799f95e978fbf643d1e762d605b4d5b06499f`), specifically the maximum-acceleration personality curves in `top/selfdrive/controls/lib/accel_personality/accel_profiles.py`. PORT-03 uses a thin HANK-owned validated input adapter and does not import B product-specific input plumbing.
+
+The acceleration profile values are `sport = 0`, `normal = 1`, `eco = 2`, and `stock = 3`. Speed is in m/s and acceleration is in m/s². The frozen maximum-acceleration data is:
+
+```text
+MAX_ACCEL_BREAKPOINTS = [0., 1., 3., 6., 8., 11., 16., 20., 25., 30., 55.]
+eco    = [2.0, 2.0, 1.5, .75, .60, .55, .40, .36, .28, .22, .08]
+normal = [2.0, 2.0, 1.9, 1.42, .95, .83, .61, .54, .45, .38, .15]
+sport  = [2.0, 2.0, 1.9, 1.75, 1.3, 1.1, .82, .71, .55, .48, .25]
+```
+
+Interpolation is donor-exact cubic Hermite. Input speed is first clipped to the breakpoint domain. For secants `d[i] = (y[i+1] - y[i]) / (x[i+1] - x[i])`, endpoint slopes are `m[0] = d[0]` and `m[-1] = d[-1]`, and interior slopes are `m[i] = (d[i-1] + d[i]) / 2`. Segment selection remains `np.searchsorted(xp, x) - 1`. No output clamp or monotonicity limiter is added to remove donor Hermite overshoot.
+
+The HANK adapter accepts an explicit validated acceleration profile. `stock` or the default preserves current A/HANK `get_max_accel()` behavior; `normal`, `eco`, and `sport` select the exact B maximum curve. Unsupported types or values are rejected explicitly without silent fallback. The selection is immutable for the planner instance in PORT-03. Params persistence, live profile changes, and HANK three-mode mapping belong to CFG-01.
+
+PORT-03 applies only to the ACC base upper-acceleration cap after the final AEM mode and E-002 MPC mode synchronization, and before turn limiting, MAA, reset/coast handling, DTSC, MPC, ACM, output selection, DASR, and final output clipping. Blended mode does not directly apply the donor profile upper. DTSC OFF retains the existing MPC `p[0:2]` defaults; DTSC ON receives the personality-limited base upper through the existing E-001 intersection, so personality cannot loosen DTSC. Donor minimum profiles are not written into `p[0]`.
+
+APM remains limited to `LongitudinalPersonality`; it is not automatically mapped to acceleration personality. Existing AEM, ACM, DASR, PORT-01 Dynamic Follow, PORT-02 stopped-equivalence, and Toyota Stock Long ownership remain authoritative. `CP.openpilotLongitudinalControl == False` must effectively bypass PORT-03.
+
+**Explicit PORT-03 exclusions**
+
+- Toyota physical SPORT/ECON selection, `ToyotaDriveMode`, `CarState.accelProfile`, B custom cereal acceleration-personality schema, and `longitudinalPlanTOP` telemetry
+- Whole `AccelController`, its polling/state/frame counter, and MPC `AccelController` synchronization
+- B minimum-acceleration profile and lower-profile cruise-envelope activation
+- B low-speed jerk and acceleration-change weight factors, B `COMFORT_BRAKE = 1.75`, C `braking_offset`, donor response tuning, and donor slew policy
+- Toyota interface/CarState/CarController, Panda, SecOC, cereal replacement, donor planner/LongControl, and generated donor solver artifacts
+
+F-005 remains a separate unresolved numerical and solver decision.
 
 ---
 

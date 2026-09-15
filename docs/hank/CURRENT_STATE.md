@@ -1,13 +1,13 @@
 # HANK current implementation state
 
-Updated: 2026-09-15. Scope: durable implementation and verification state through PORT-02. This is not a release or vehicle-validation approval.
+Updated: 2026-09-15. Scope: durable implementation and verification state through PORT-02 and the PORT-03 donor closure. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
 - Repository: `Hank102373/dp-sienna-0103`
 - Branch: `hank/implementation-v1`
 - Current implementation checkpoint: `772a786f55b8c195ffd20f038c7757569590db0d`
-- Remote state at synchronization start: `origin/hank/implementation-v1` matched `772a786f55b8c195ffd20f038c7757569590db0d`.
+- Remote state at synchronization start: `origin/hank/implementation-v1` matched `2f609401179059fbedaea71300857e6aba278d3b`.
 - A/main remains the platform authority at `1986516b325cbf8d173f6ebaea989ed45673c49f`.
 - `sienna-longitudinal-dev` remains research only under D-018.
 - WSL Ubuntu 24.04 provides the executable development environment at `/home/hank/src/dp-sienna-0103`.
@@ -127,10 +127,38 @@ Verification after implementation:
 
 Limits: deterministic, solver-facing, regression, lint, and build verification passed. C3X bench, vehicle, and deployment validation remain outstanding.
 
+### PORT-03 closure — Acceleration Personality donor freeze
+
+- Result: `PORT03_CLOSURE: READY_B_ADAPTER`
+- Canonical donor: B / `CT921/openpilot`, branch `TOP01003`
+- Donor commit: `615799f95e978fbf643d1e762d605b4d5b06499f`
+- Donor file: `top/selfdrive/controls/lib/accel_personality/accel_profiles.py`
+- Frozen scope: B maximum-acceleration personality curves through a thin HANK-owned validated input adapter
+
+The frozen profiles are `sport = 0`, `normal = 1`, `eco = 2`, and `stock = 3`. The speed breakpoints in m/s are `[0., 1., 3., 6., 8., 11., 16., 20., 25., 30., 55.]`. Maximum acceleration values in m/s² are:
+
+```text
+eco    = [2.0, 2.0, 1.5, .75, .60, .55, .40, .36, .28, .22, .08]
+normal = [2.0, 2.0, 1.9, 1.42, .95, .83, .61, .54, .45, .38, .15]
+sport  = [2.0, 2.0, 1.9, 1.75, 1.3, 1.1, .82, .71, .55, .48, .25]
+```
+
+The donor-exact algorithm clips speed to the breakpoint domain and uses cubic Hermite interpolation with endpoint secant slopes and averaged adjacent secants for interior slopes. Segment selection remains `np.searchsorted(xp, x) - 1`. Donor Hermite overshoot is preserved without an added output clamp or monotonicity limiter.
+
+The future adapter accepts an explicit validated profile. Stock/default preserves current HANK `get_max_accel()` behavior; normal/eco/sport use the exact donor maximum curve. Invalid types or values are rejected without silent fallback. PORT-03 keeps the profile immutable for the planner instance; persistence, live switching, and HANK three-mode mapping remain CFG-01 work.
+
+The application point is the ACC base upper-acceleration cap after final AEM mode selection and E-002 synchronization, and before turn limiting, MAA, coast handling, DTSC, MPC, ACM, output selection, DASR, and final clipping. Blended mode does not directly apply the donor upper. E-001 remains authoritative: DTSC OFF retains MPC default `p[0:2]`, while DTSC ON intersects its constraints with the personality-limited base upper. APM remains independent `LongitudinalPersonality`; PORT-01 `p[4]`, PORT-02 `p[2]`, and Stock Long ownership are preserved.
+
+PORT-03 excludes Toyota physical drive-mode selection, `ToyotaDriveMode`, `CarState.accelProfile`, B custom cereal and telemetry, the whole `AccelController`, its MPC instance synchronization, B minimum-acceleration/lower-envelope activation, F-005 jerk/weight/response and slew tuning, B `COMFORT_BRAKE = 1.75`, C `braking_offset`, and Toyota/SecOC/Panda or generated-solver changes.
+
+No PORT-03 production implementation has occurred. Source and deterministic closure is complete; implementation regression, C3X, vehicle, and deployment validation remain outstanding.
+
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
+- F-004 / D-009 Acceleration Personality is frozen as `READY_B_ADAPTER`; PORT-03 implementation has not started.
 - F-005 low-speed jerk / acceleration-response numerical decision remains unresolved.
+- CFG-01 profile externalization and lifecycle remain unimplemented.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
 - Full P0 SecOC/Toyota release acceptance has not been completed.
@@ -140,9 +168,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`PORT03_CLOSURE` — freeze the exact F-004 Acceleration Personality behavior, fields, dependencies, constants, interaction boundary, and test oracle before implementation. The accepted donor architecture is B / `TOP01003` at `615799f95e978fbf643d1e762d605b4d5b06499f`.
-
-Closure must determine the exact dependency boundary around `accel_personality`, planner/MPC inputs, personality source, speed/acceleration limits, weights or response effects, and interactions with APM, AEM, DASR, PORT-01 Dynamic Follow, and PORT-02 Pull-away. Toyota physical drive-mode or custom cereal dependencies are excluded unless closure proves they are necessary.
+`PORT03_IMPLEMENTATION` — add deterministic test-first coverage, then port the frozen B maximum-acceleration curves and thin validated HANK adapter at the current A/HANK ACC upper-cap seam. Preserve the exclusions and interaction order recorded in D-009; do not begin CFG-01 or F-005 as part of this implementation unit.
 
 ## Commit map and rollback
 
