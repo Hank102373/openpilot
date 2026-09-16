@@ -439,6 +439,122 @@ The production architecture moved to donor-behavior preservation rather than a n
 
 ---
 
+## D-019 — CFG-01 v1 uses a versioned requested/session configuration
+
+**Status:** Accepted — CFG-01 closure complete (`READY_CFG01`)
+
+**Date:** 2026-09-16
+
+**Decision**
+
+CFG-01 v1 is selection-only configuration. It externalizes the PORT-01 Dynamic Follow enable and PORT-03 acceleration-profile selection. It does not externalize numerical donor values and does not add a HANK three-mode selector.
+
+The sole v1 config authority is one versioned Requested JSON, one versioned Active JSON, and a session latch:
+
+| Key | Type | Flags | Registry default |
+|---|---|---|---|
+| `HankConfigRequested` | JSON | `PERSISTENT` | none |
+| `HankConfigActive` | JSON | `CLEAR_ON_OFFROAD_TRANSITION | CLEAR_ON_IGNITION_ON` | none |
+| `HankConfigSessionStarted` | BOOL | `CLEAR_ON_OFFROAD_TRANSITION | CLEAR_ON_IGNITION_ON` | none |
+
+The latch carries no feature selection. It distinguishes a new session from same-session Active loss or an interrupted snapshot. External processes must not write or delete Active or the latch.
+
+**V1 schema**
+
+Requested and Active use the exact schema:
+
+```json
+{
+  "version": 1,
+  "dynamic_follow": false,
+  "accel_profile": 3
+}
+```
+
+- `version` is an integer exactly equal to 1.
+- `dynamic_follow` is a JSON boolean.
+- `accel_profile` is an integer: sport 0, normal 1, eco 2, stock 3.
+- Boolean, float, and string substitutes for integer fields are rejected.
+- Missing fields, unknown fields, duplicate keys, a non-object root, and unsupported versions are rejected.
+- The stock/default bundle is exactly version 1, Dynamic Follow false, and acceleration profile stock.
+- `LongitudinalPersonality` is not part of v1.
+
+**Owner and snapshot**
+
+`plannerd` is the snapshot owner. After valid `CarParams` is available and before constructing `LongitudinalPlanner`, it:
+
+1. inspects Active and the latch;
+2. reuses a fully valid pair;
+3. when both are absent in a valid new session, writes and reads back latch=true;
+4. obtains a validated Requested, migration result, or explicit recovery bundle;
+5. atomically writes and reads back the complete Active JSON;
+6. validates Active again; and
+7. only then constructs the planner.
+
+A Requested change does not change Active during the current session. A standalone `plannerd` restart reuses valid Active. Writes are atomic per Params key; the latch-first order turns an interrupted snapshot into an invalid session state rather than a second Requested snapshot.
+
+**Apply lifecycle**
+
+CFG-01 v1 applies on the next onroad session only.
+
+- Requested writes store a candidate and do not change current behavior.
+- A normal offroad transition clears Active and the latch.
+- The next onroad initialization snapshots the latest valid Requested.
+- A valid synthetic `OnroadCycleRequested` cycle follows the same offroad-clear and next-onroad path.
+- A normal manager restart, new ignition, or C3X reboot clears/rebuilds session state while preserving Requested.
+- A standalone planner restart and disengage/re-engage without a lifecycle transition reuse Active.
+- CFG-01 neither triggers `OnroadCycleRequested` nor treats its consumer as a disengagement safety gate.
+- Arbitrary and disengaged live apply are outside v1.
+
+Lifecycle clearing is not safety authorization.
+
+**Stock Long, APM, and product modes**
+
+When `CP.openpilotLongitudinalControl == False`, Requested remains stored and Active is still snapshotted without forcing its fields to stock/false. Existing CP guards bypass both configured behaviors. A TSS-to-HANK owner change still requires the D-012/D-013 rebuild cycle; the new HANK session snapshots the latest Requested.
+
+APM continues to override only effective `LongitudinalPersonality`. It does not modify Requested, Active, AccelProfile, or Dynamic Follow enable. The gap button keeps its existing selfdrived path and does not write CFG.
+
+Future `緊湊 / 一般 / 舒適` modes are HANK product selectors, not aliases for donor enums. Their exact mapping is deferred and is not represented in the v1 schema.
+
+**Restore and recovery**
+
+The stock/default restore writes the complete stock bundle and applies next session. Donor-original restore is per field: Dynamic Follow true selects the frozen PORT-01 donor behavior, while PORT-03 requires an explicit sport, normal, or eco choice. There is no invented universal B donor mode.
+
+- A valid Active/latch pair is reused even if Requested changes or becomes corrupt.
+- On a new session, a missing Requested invokes the legacy migration. If no legacy request exists, the explicit stock bundle is used.
+- An invalid, corrupt, or unsupported Requested on a new session falls back to the stock bundle with an explicit recorded reason; the original corrupt value is not silently rewritten.
+- Corrupt/unsupported Active, latch-without-Active, Active-without-valid-latch, or snapshot I/O/readback failure rejects initialization and waits for a new session. It must not reread Requested and continue in the same session.
+- Missing, corrupt, and I/O failure are distinct states. The adapter must strictly parse raw stored JSON rather than relying on a typed read that can collapse malformed data to `None`.
+
+**Migration, downgrade, and reset**
+
+Schema version 1 accepts only its exact fields. The HANK config adapter owns migration; v1 does not add a generic migration framework.
+
+Only when `HankConfigRequested` truly does not exist, legacy `HankDynamicFollow` raw `"0"` or `"1"` is migrated, with acceleration profile stock. A missing legacy request means false. The adapter saves the complete new Requested before constructing Active. After migration, the JSON is the sole CFG authority; legacy key definitions remain for old-version compatibility, and `HankDynamicFollowActive` is not new runtime authority.
+
+A controlled downgrade occurs at an offroad/manager-restart boundary. Before downgrade, export Requested and write the desired legacy Dynamic Follow value. A PORT-03 baseline uses stock acceleration because its production caller does not consume a profile Param. Transparent downgrade compatibility is not claimed.
+
+A HANK reset writes the complete stock/default Requested and does not clear current Active or alter APM, `LongitudinalPersonality`, DP toggles, or Stock Long ownership. Existing `dp_dev_reset_conf` behavior is unchanged. A future UI needs a separate HANK reset/restore action.
+
+**Implementation boundary**
+
+Required production scope is `common/params_keys.h`, `selfdrive/controls/plannerd.py`, and a small new `selfdrive/controls/lib/hank_config.py` adapter. Required tests are a new `selfdrive/controls/tests/test_hank_config.py` and updates to `selfdrive/controls/tests/test_dynamic_follow.py`; `test_accel_personality_planner.py` is optional for additional evidence.
+
+CFG-01 excludes production changes to `longitudinal_planner.py`, `accel_personality.py`, `long_mpc.py`, manager, Toyota, Panda, SecOC, LongControl, cereal, UI, F-005, and generated solver artifacts.
+
+**Deferred**
+
+The exact three-mode mapping, UI, numerical field externalization, follow/stop-distance tuning, F-005, disengaged live apply, and possible future DP-toggle bundling remain separate decisions. C3X bench, V0-V3, P0/SecOC/Toyota release acceptance, and Phase 1 completion remain outstanding.
+
+**Rejected**
+
+- Multiple independent Params fields as the v1 CFG authority.
+- Per-cycle or disengaged live application in v1.
+- Treating enum numeric equality as a semantic product-mode mapping.
+- Treating lifecycle clearing or `OnroadCycleRequested` consumption as safety authorization.
+
+---
+
 ## Future decision-entry template
 
 ```text

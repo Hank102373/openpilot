@@ -1,13 +1,13 @@
 # HANK current implementation state
 
-Updated: 2026-09-16. Scope: durable implementation and verification state through PORT-03. This is not a release or vehicle-validation approval.
+Updated: 2026-09-16. Scope: durable implementation and verification state through PORT-03 and the CFG-01 lifecycle closure. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
 - Repository: `Hank102373/dp-sienna-0103`
 - Branch: `hank/implementation-v1`
 - Current implementation checkpoint: `dab63d6ea1dcbc23db11ced15c6b08036404bafa`
-- Remote state at synchronization start: `origin/hank/implementation-v1` matched `dab63d6ea1dcbc23db11ced15c6b08036404bafa`.
+- Remote state at synchronization start: `origin/hank/implementation-v1` matched `83b27ef884090b95f6f78172d57db0d7e1ecf157`.
 - A/main remains the platform authority at `1986516b325cbf8d173f6ebaea989ed45673c49f`.
 - `sienna-longitudinal-dev` remains research only under D-018.
 - WSL Ubuntu 24.04 provides the executable development environment at `/home/hank/src/dp-sienna-0103`.
@@ -175,12 +175,26 @@ Verification:
 
 Limits: deterministic, solver-facing, regression, lint, and build verification passed. C3X bench, vehicle, deployment, and release validation remain outstanding.
 
+### CFG-01 closure — Versioned config lifecycle
+
+- Closure result: `CFG01_CLOSURE: READY_CFG01`
+- V1 scope: selection-only Dynamic Follow enable and acceleration-profile selection
+- Snapshot owner: `plannerd`, after CarParams and before planner construction
+- Apply policy: next onroad session only
+- Implementation status: not started
+
+The frozen schema is an exact version 1 JSON object with `dynamic_follow` boolean and `accel_profile` integer 0 through 3. `HankConfigRequested` is persistent; `HankConfigActive` and the `HankConfigSessionStarted` latch clear on offroad transition or ignition on. Active is validated before planner construction, Requested changes do not affect the current session, and standalone planner restarts reuse a valid Active snapshot.
+
+Stock Long retains and snapshots the selected config but bypasses it through existing CP guards. APM and the gap button remain on the existing `LongitudinalPersonality` path. Stock restore is the complete false/stock bundle; donor restore is per field. Missing Requested supports the frozen legacy Dynamic Follow migration, while corrupt Active or an inconsistent latch rejects initialization until a new session.
+
+No CFG-01 implementation has occurred. Exact HANK three-mode mapping, UI, numerical field externalization, follow/stop-distance tuning, F-005, disengaged live apply, and DP-toggle bundling remain deferred.
+
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
 - F-004 / D-009 Acceleration Personality is implemented at the PORT-03 checkpoint; CFG-01 externalization and C3X/vehicle validation remain outstanding.
 - F-005 low-speed jerk / acceleration-response numerical decision remains unresolved.
-- CFG-01 profile externalization and lifecycle remain unimplemented.
+- CFG-01 closure is `READY_CFG01`; implementation has not started.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
 - Full P0 SecOC/Toyota release acceptance has not been completed.
@@ -190,7 +204,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`CFG01_CLOSURE` — freeze HANK profile/config ownership; parameter names, types, minimums, maximums, and defaults; donor-original preset handling; acceleration-profile persistence; Dynamic Follow requested/active relationships; the future HANK three-mode mapping boundary; apply lifecycle and offroad/engagement boundaries; APM and PORT-01/PORT-02/PORT-03 interactions; invalid-value handling; and rollback/default behavior. Do not resolve F-005 as part of CFG-01 closure.
+`CFG01_IMPLEMENTATION` — implement the frozen D-019 version 1 Requested/Active/latch schema, strict validation, legacy Dynamic Follow migration, next-session snapshot lifecycle, planner constructor plumbing, and deterministic tests. Preserve the exclusion boundary; do not begin UI, numerical tuning, three-mode mapping, or F-005.
 
 ## Commit map and rollback
 
@@ -206,4 +220,4 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 | PORT-03 donor closure | `a2486cd4c6575003c6c804240353d249d9a91e27` | Documentation-only frozen donor boundary |
 | PORT-03 | `dab63d6ea1dcbc23db11ced15c6b08036404bafa` | Revert PORT-03 checkpoint independently |
 
-Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-018.
+Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-019.
