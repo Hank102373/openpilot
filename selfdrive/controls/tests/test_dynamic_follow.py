@@ -156,9 +156,13 @@ def start_plannerd(params, monkeypatch):
 @pytest.mark.parametrize('clear_flag', [ParamKeyFlag.CLEAR_ON_OFFROAD_TRANSITION, ParamKeyFlag.CLEAR_ON_IGNITION_ON])
 def test_requested_active_lifecycle(tmp_path, monkeypatch, requested, clear_flag):
   params = Params(str(tmp_path))
-  params.put_bool('HankDynamicFollow', requested)
+  requested_config = {'version': 1, 'dynamic_follow': requested, 'accel_profile': 3}
+  params.put('HankConfigRequested', requested_config)
   planner = start_plannerd(params, monkeypatch)
-  assert params.get('HankDynamicFollowActive') is requested
+  assert params.get('HankConfigActive') == requested_config
+  assert params.get_bool('HankConfigSessionStarted')
+  assert planner._dynamic_follow_active is requested
+  assert params.get('HankDynamicFollowActive') is None
   spy = observe(planner)
   sm = make_messages()
 
@@ -168,18 +172,28 @@ def test_requested_active_lifecycle(tmp_path, monkeypatch, requested, clear_flag
     check_frame(instance, observer, expected, f'lifecycle-active-{active}')
 
   check_session(planner, spy, requested)
-  params.put_bool('HankDynamicFollow', not requested)
+  next_config = {**requested_config, 'dynamic_follow': not requested}
+  params.put('HankConfigRequested', next_config)
   check_session(planner, spy, requested)
+  params.put_bool('HankDynamicFollowActive', not requested)
   restarted = start_plannerd(params, monkeypatch)
-  assert params.get('HankDynamicFollowActive') is requested
+  assert params.get('HankConfigActive') == requested_config
+  assert params.get_bool('HankConfigSessionStarted')
+  assert params.get('HankDynamicFollowActive') is not requested
+  assert restarted._dynamic_follow_active is requested
   check_session(restarted, observe(restarted), requested)
 
   # Exercise actual Params lifecycle flags, not just manual removal of Active.
   params.clear_all(clear_flag)
+  assert params.get('HankConfigActive') is None
+  assert params.get('HankConfigSessionStarted') is None
   assert params.get('HankDynamicFollowActive') is None
-  assert params.get('HankDynamicFollow') is not requested
+  assert params.get('HankConfigRequested') == next_config
   next_session = start_plannerd(params, monkeypatch)
-  assert params.get('HankDynamicFollowActive') is not requested
+  assert params.get('HankConfigActive') == next_config
+  assert params.get_bool('HankConfigSessionStarted')
+  assert next_session._dynamic_follow_active is not requested
+  assert params.get('HankDynamicFollowActive') is None
   check_session(next_session, observe(next_session), not requested)
 
 

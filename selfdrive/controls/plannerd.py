@@ -3,6 +3,8 @@ from cereal import car
 from openpilot.common.params import Params
 from openpilot.common.realtime import Priority, config_realtime_process
 from openpilot.common.swaglog import cloudlog
+from openpilot.selfdrive.controls.lib.accel_personality import AccelProfile
+from openpilot.selfdrive.controls.lib.hank_config import initialize_session
 from openpilot.selfdrive.controls.lib.ldw import LaneDepartureWarning
 from openpilot.selfdrive.controls.lib.longitudinal_planner import LongitudinalPlanner, DPFlags
 import cereal.messaging as messaging
@@ -17,12 +19,10 @@ def main():
   cloudlog.info("plannerd got CarParams: %s", CP.brand)
 
   ldw = LaneDepartureWarning()
-  # Reuse the session snapshot across plannerd restarts; lifecycle flags clear it.
-  dynamic_follow_active = params.get("HankDynamicFollowActive")
-  if dynamic_follow_active is None:
-    dynamic_follow_active = params.get_bool("HankDynamicFollow")
-    params.put_bool("HankDynamicFollowActive", dynamic_follow_active)
-  longitudinal_planner = LongitudinalPlanner(CP, dynamic_follow_active=dynamic_follow_active)
+  snapshot = initialize_session(params)
+  cloudlog.info("HANK config %s: %s", snapshot.action, snapshot.reason)
+  longitudinal_planner = LongitudinalPlanner(CP, dynamic_follow_active=snapshot.config.dynamic_follow,
+                                           accel_profile=AccelProfile(snapshot.config.accel_profile))
   pm = messaging.PubMaster(['longitudinalPlan', 'driverAssistance'])
   sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'liveParameters', 'radarState', 'modelV2', 'selfdriveState', 'maaControl'],
                            poll='modelV2', ignore_alive=['maaControl'])
