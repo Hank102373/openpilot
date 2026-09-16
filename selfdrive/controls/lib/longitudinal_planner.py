@@ -9,6 +9,7 @@ from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.realtime import DT_MDL
 from openpilot.selfdrive.modeld.constants import ModelConstants
 from openpilot.selfdrive.controls.lib.longcontrol import LongCtrlState
+from openpilot.selfdrive.controls.lib.accel_personality import AccelProfile, validate_profile, get_max_accel as get_profile_max_accel
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
 from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, get_accel_from_plan
@@ -69,8 +70,9 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 
 
 class LongitudinalPlanner:
-  def __init__(self, CP, init_v=0.0, init_a=0.0, dt=DT_MDL, dynamic_follow_active=False):
+  def __init__(self, CP, init_v=0.0, init_a=0.0, dt=DT_MDL, dynamic_follow_active=False, accel_profile=AccelProfile.stock):
     self.CP = CP
+    self._accel_profile = validate_profile(accel_profile)
     self._dynamic_follow_active = dynamic_follow_active
     self.mpc = LongitudinalMpc(dt=dt)
     # TODO remove mpc modes when TR released
@@ -97,6 +99,10 @@ class LongitudinalPlanner:
 
     # dp: maa turn speed helper
     self.maa_helper = LongitudinalHelper() if MAA_PLANNER_AVAILABLE else None
+
+  @property
+  def accel_profile(self):
+    return self._accel_profile
 
   @staticmethod
   def parse_model(model_msg):
@@ -151,7 +157,11 @@ class LongitudinalPlanner:
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
     if mode == 'acc':
-      accel_clip = [ACCEL_MIN, get_max_accel(v_ego)]
+      if self.CP.openpilotLongitudinalControl and self.accel_profile is not AccelProfile.stock:
+        base_max_accel = get_profile_max_accel(v_ego, self.accel_profile)
+      else:
+        base_max_accel = get_max_accel(v_ego)
+      accel_clip = [ACCEL_MIN, base_max_accel]
       steer_angle_without_offset = sm['carState'].steeringAngleDeg - sm['liveParameters'].angleOffsetDeg
       accel_clip = limit_accel_in_turns(v_ego, steer_angle_without_offset, accel_clip, self.CP)
     else:
