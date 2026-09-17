@@ -86,7 +86,7 @@ def observe(planner):
 
 def check_frame(planner, spy, expected, label):
   frame = spy.frames[-1]
-  assert frame['p'].shape == (long_mpc.N + 1, 6)
+  assert frame['p'].shape == (long_mpc.N + 1, 7)
   np.testing.assert_allclose(frame['p'][:, 4], expected, rtol=0, atol=1e-12)
   assert frame['native_status'] == planner.mpc.solution_status == 0
   assert spy.resets == 0
@@ -210,7 +210,8 @@ def test_native_follow_and_pitch(name, enabled, orientation, addition):
   planner.update(sm)
   speed = spy.frames[-1]['speed']
   expected = donor_at_speed(speed, name) + addition if enabled else STATIC[name]
-  check_frame(planner, spy, expected, f'{name}-enabled-{enabled}-pitch-{orientation}')
+  frame = check_frame(planner, spy, expected, f'{name}-enabled-{enabled}-pitch-{orientation}')
+  np.testing.assert_allclose(frame['p'][:, 6], long_mpc.get_STOP_DISTANCE(getattr(log.LongitudinalPersonality, name)))
 
 
 def test_uses_mpc_current_speed():
@@ -239,7 +240,8 @@ def test_mpc_api_off_on_off():
     j = np.zeros(long_mpc.N + 1)
     mpc.update(sm['radarState'], 20, x, v, a, j,
                personality=log.LongitudinalPersonality.aggressive, dynamic_follow=enabled, pitch_rad=-.1)
-    check_frame(SimpleNamespace(mpc=mpc), spy, expected, f'api-enabled-{enabled}')
+    frame = check_frame(SimpleNamespace(mpc=mpc), spy, expected, f'api-enabled-{enabled}')
+    np.testing.assert_allclose(frame['p'][:, 6], long_mpc.get_STOP_DISTANCE(log.LongitudinalPersonality.aggressive))
 
 
 def test_apm_effective_personality():
@@ -251,7 +253,8 @@ def test_apm_effective_personality():
     sm['carState'].vEgo = speed
     planner.update(sm, DPFlags.APM)
     assert planner.apm._active == (name == 'aggressive')
-    check_frame(planner, spy, donor_at_speed(spy.frames[-1]['speed'], name), f'APM-{speed}-{name}')
+    frame = check_frame(planner, spy, donor_at_speed(spy.frames[-1]['speed'], name), f'APM-{speed}-{name}')
+    np.testing.assert_allclose(frame['p'][:, 6], long_mpc.get_STOP_DISTANCE(getattr(log.LongitudinalPersonality, name)))
 
 
 @pytest.mark.parametrize('transition', ['experimental', 'aem'])
@@ -272,6 +275,7 @@ def test_mode_interaction(monkeypatch, transition):
     sm['modelV2'].acceleration.x = np.full(len(times), -2.5 if stopping else 0).tolist()
     planner.update(sm, DPFlags.AEM if transition == 'aem' else 0)
     frame = check_frame(planner, spy, donor_at_speed(spy.frames[-1]['speed'], 'standard'), f'{transition}-{index}')
+    np.testing.assert_allclose(frame['p'][:, 6], long_mpc.get_STOP_DISTANCE(log.LongitudinalPersonality.standard))
     assert planner.mpc.mode == mode
     if transition == 'aem':
       assert planner.aem._active == (index == 1)
@@ -286,7 +290,9 @@ def test_mode_interaction(monkeypatch, transition):
       np.testing.assert_allclose(frame['p'][0, 2], 50 + (frame['speed'] + 10)**2 / 5)
     else:
       np.testing.assert_array_equal(frame['yref1'], 0)
-      np.testing.assert_allclose(frame['p'][0, 2], frame['speed']**2 / 5 + frame['p'][0, 4] * frame['speed'] + 6)
+      expected_obstacle = (frame['speed']**2 / 5 + frame['p'][0, 4] * frame['speed']
+                           + long_mpc.get_STOP_DISTANCE(log.LongitudinalPersonality.standard))
+      np.testing.assert_allclose(frame['p'][0, 2], expected_obstacle)
 
 
 def test_dtsc_bounds_with_dynamic_follow(monkeypatch):

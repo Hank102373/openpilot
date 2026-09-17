@@ -82,7 +82,8 @@ def run_frame(planner, spy, sm, one, two, flags=0):
   for values in (frame['p'], *frame['W'], *frame['yref'], planner.mpc.v_solution,
                  planner.mpc.a_solution, planner.mpc.j_solution):
     assert np.all(np.isfinite(values))
-  assert frame['p'].shape == (13, 6)
+  assert frame['p'].shape == (13, 7)
+  np.testing.assert_allclose(frame['p'][:, 6], long_mpc.get_STOP_DISTANCE())
   np.testing.assert_allclose(frame['p'][:, 2], frame['obstacles'].min(axis=1))
   print(json.dumps({'mode': frame['mpc_mode'], 'source': frame['source'],
                     'p0': frame['p'][0].tolist(), 'native_status': frame['native_status'],
@@ -149,7 +150,7 @@ def test_focused_interactions(monkeypatch, blended, dynamic, dtsc):
   np.testing.assert_allclose(current['obstacles'][:, 0], 10 + 4 * long_mpc.T_IDXS + 4.369230769230769)
   np.testing.assert_allclose(current['obstacles'][:, 1], 50 + 13 * long_mpc.T_IDXS + 40.815384615384615)
   assert np.any(np.abs(current['p'][:, 2] - baseline['p'][:, 2]) > .1)
-  np.testing.assert_allclose(current['p'][:, [0, 1, 3, 4, 5]], baseline['p'][:, [0, 1, 3, 4, 5]])
+  np.testing.assert_allclose(current['p'][:, [0, 1, 3, 4, 5, 6]], baseline['p'][:, [0, 1, 3, 4, 5, 6]])
   if not dtsc:
     np.testing.assert_allclose(current['p'][:, :2], np.tile([ACCEL_MIN, ACCEL_MAX], (13, 1)))
   np.testing.assert_allclose(current['p'][:, 4], 1.2 if dynamic else 1.45)

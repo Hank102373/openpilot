@@ -10,7 +10,7 @@ from cereal import log
 from dragonpilot.selfdrive.controls.lib import aem, acm
 from openpilot.selfdrive.controls.lib import longitudinal_planner as lp
 from openpilot.selfdrive.controls.lib.accel_personality import AccelProfile
-from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import N, T_IDXS
+from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import N, T_IDXS, get_STOP_DISTANCE
 from openpilot.selfdrive.controls.tests.test_dtsc_bounds import make_messages
 from openpilot.selfdrive.controls.tests.test_longitudinal_mode import NativeModeSpy
 from openpilot.selfdrive.controls.tests.test_dynamic_follow import donor_at_speed
@@ -63,7 +63,7 @@ def run(planner, spy, sm, flags=0):
   frame = spy.frames[-1]
   assert frame['native_status'] == planner.mpc.solution_status == 0
   assert spy.resets == 0
-  assert frame['p'].shape == (N + 1, 6)
+  assert frame['p'].shape == (N + 1, 7)
   assert all(np.all(np.isfinite(x)) for x in [frame['p'], planner.mpc.v_solution,
                                             planner.mpc.a_solution, planner.mpc.j_solution])
   print('A2_NATIVE ' + json.dumps({'native_status': frame['native_status'],
@@ -196,6 +196,7 @@ def test_dynamic_follow_and_apm_independence(turn_calls, dynamic):
     assert planner.accel_profile is AccelProfile.eco
     expected_follow = donor_at_speed(planner.mpc.x0[1], name) if dynamic else (1.25 if name == 'aggressive' else 1.75)
     np.testing.assert_allclose(frame['p'][:, 4], expected_follow)
+    np.testing.assert_allclose(frame['p'][:, 6], get_STOP_DISTANCE(getattr(log.LongitudinalPersonality, name)))
     expected_upper = {6.: .75, 10.: .5631481481481482, 15.: .42466666666666664}
     # Independent frozen values below are checked at the exact measured speed.
     assert turn_calls[-1][1][1] == pytest.approx(expected_upper[speed], abs=1e-12)
