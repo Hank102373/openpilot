@@ -1,13 +1,13 @@
 # HANK current implementation state
 
-Updated: 2026-09-17. Scope: durable implementation and verification state through CFG-01 plus the F-002 donor closure. This is not a release or vehicle-validation approval.
+Updated: 2026-09-17. Scope: durable implementation and verification state through F-002. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
 - Repository: `Hank102373/dp-sienna-0103`
 - Branch: `hank/implementation-v1`
-- Current implementation checkpoint: `5951b7f9392cae5284c5e09effdd4bdcd120b171`
-- Remote state at synchronization start: `origin/hank/implementation-v1` matched `5951b7f9392cae5284c5e09effdd4bdcd120b171`.
+- Current implementation checkpoint: `d2eb41426aa3e299f37ae8ffdc73f1c563015a95`
+- Remote state at synchronization start: `origin/hank/implementation-v1` matched `d2eb41426aa3e299f37ae8ffdc73f1c563015a95`.
 - A/main remains the platform authority at `1986516b325cbf8d173f6ebaea989ed45673c49f`.
 - `sienna-longitudinal-dev` remains research only under D-018.
 - WSL Ubuntu 24.04 provides the executable development environment at `/home/hank/src/dp-sienna-0103`.
@@ -209,28 +209,55 @@ Verification:
 
 The checkpoint changed 6 files with 879 insertions and 12 deletions. Exact HANK three-mode mapping, UI, numerical field externalization, follow/stop-distance tuning, F-005, disengaged live apply, and DP-toggle bundling remain deferred.
 
-### F-002 closure — Stop Distance from TOP01003
+### F-002 — Stop Distance from TOP01003
 
+- Closure checkpoint: `14a6d7049ce155b3f86706c79dab5c1fca28e0dc`
+- Closure message: `docs(hank): freeze TOP01003 stop distance donor`
 - Closure result: `F002_CLOSURE: READY_F002`
+- Implementation checkpoint: `d2eb41426aa3e299f37ae8ffdc73f1c563015a95`
+- Implementation message: `feat(longitudinal): port TOP01003 stop distance`
+- Implementation result: `F002_IMPLEMENTATION_PASS`
+- Implementation scope: `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py`, `selfdrive/controls/tests/test_accel_personality_planner.py`, `selfdrive/controls/tests/test_dynamic_follow.py`, `selfdrive/controls/tests/test_pull_away.py`, `selfdrive/controls/tests/test_stop_distance.py`, and `selfdrive/test/longitudinal_maneuvers/test_longitudinal.py`
 - Canonical donor: B / `CT921/openpilot`, branch `TOP01003`
 - Donor commit: `615799f95e978fbf643d1e762d605b4d5b06499f`
-- Donor file: `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py`
-- Production implementation: not started
 
-D-020 freezes the donor presets as relaxed 4.5 m, standard 4.0 m, and aggressive 4.0 m. The implementation must append live `stop_distance` as `p[6]`, increasing `PARAM_DIM` from 6 to 7 while preserving `p[0]` through `p[5]`. The parameter participates in the generated cost and danger constraint and must be populated consistently in ACC and blended operation, including the ACC cruise obstacle and blended lead-comfort checks.
+The implementation increases `PARAM_DIM` from 6 to 7 and appends personality-selected `stop_distance` at `p[6]`. Existing positions remain unchanged: `p[0]` a_min, `p[1]` a_max, `p[2]` x_obstacle, `p[3]` prev_a, `p[4]` lead_t_follow, and `p[5]` lead_danger_factor. Unsupported personalities raise `NotImplementedError`.
 
-HANK keeps `COMFORT_BRAKE = 2.5` m/s², the C/TOP096 pull-away transform, E-001 acceleration bounds, E-002 mode synchronization, PORT-01 Dynamic Follow, PORT-03 Acceleration Personality, CFG-01 v1, and the Toyota Stock Long authority boundary. B's `COMFORT_BRAKE = 1.75`, ToyotaTune `+0.5 m`, B pull-away logic, and unrelated Toyota/AccelController/F-005 dependencies are excluded.
+The exact implemented presets are Relaxed 4.5, Standard 4.0, and Aggressive 4.0. HANK preserves `COMFORT_BRAKE = 2.5`; B's 1.75 value, ToyotaTune, SMART_DSU, the ToyotaTune `+0.5 m` correction, B pull-away behavior, C braking offset, and F-005 jerk tuning were not imported.
 
-The initial port uses only the closed donor mapping from effective `LongitudinalPersonality`; it does not add a CFG field or arbitrary raw input. APM and the existing gap source continue to determine effective personality without writing CFG or adding F-002 state. Candidate 1.0/1.5/2.0 m values are numerical test cases only. Source proves that raw `stop_distance` is the zero-speed MPC desired obstacle distance, but does not prove equivalence to a physical bumper-to-bumper vehicle gap. Product mapping to an approximately 1–2 m stopped gap remains deferred until bounded product values, C3X evidence, and stationary vehicle measurements are accepted.
+One effective stop distance is selected each frame from the effective `LongitudinalPersonality`. The same value reaches solver `p[6]` at all horizon rows, the ACC cruise obstacle, symbolic cost and distance constraint, and blended lead-comfort/source checks. Dynamic Follow remains independent at `p[4]`; Acceleration Personality continues to control acceleration bounds only. The PORT-02 stopped-equivalence transform is unchanged.
 
-F-002 requires regeneration from the final HANK symbolic model. Python `PARAM_DIM`, `model.p`, `acados_ocp_long.json`, generated headers/C, runtime arrays, and the native solver must all agree on seven parameters. No B generated artifact may be copied wholesale. No implementation or solver regeneration occurred during this closure.
+CFG-01 v1 remains exactly `{version, dynamic_follow, accel_profile}`: no stop-distance field, schema-version change, or live CFG polling was added. F-002 consumes the existing effective personality path used by APM and the gap button. With `CP.openpilotLongitudinalControl == False`, Toyota TSS retains actuator authority; F-002 calculation creates no longitudinal control authority.
+
+The final HANK model was regenerated through the repository SCons dependency. Generated artifacts remain ignored and were not committed. Verified dimensions are Python `PARAM_DIM = 7`, CasADi `model.p = 7`, acados JSON `np = 7`, generated `LONG_NP = 7`, generated `casadi_np = 7`, and runtime `params.shape = (13, 7)`. Native seven-value parameter vectors were accepted at every required stage with status 0, explicit reset PASS, and finite params/v/a/j.
+
+Verification:
+
+- F-002 focused: 13 passed
+- E-001 / E-002: 4 / 2 passed
+- PORT-01 / PORT-02: 82 / 45 passed
+- PORT-03 helper / planner: 173 / 47 passed
+- CFG adapter / plannerd: 108 / 18 passed
+- Combined targeted regression: 492 passed
+- Existing longitudinal: 4 passed / 58 subtests
+- Existing longitudinal `SQP_RTI` status 3 diagnostic count: 42, matching the pre-F-002 baseline
+- Final SCons: PASS, exit 0, 39.78 seconds
+- Ruff and `git diff --check`: PASS
+
+The initial full longitudinal run exposed one `resume from a stop` failure. Diagnosis classified it as `STALE_TEST_FIXTURE`: the fixture still started at legacy `STOP_DISTANCE = 6.0`, while its implicit personality was aggressive (numeric 0) and runtime correctly supplied `p[6] = 4.0`. The same seven-parameter solver failed only with fixture 6.0 / target 4.0, passed with forced target 6.0 / fixture 6.0, and passed with matching aggressive 4.0 / 4.0. Matching Relaxed 4.5, Standard 4.0, and Aggressive 4.0 fixtures all passed with solver status 0. This excluded the seven-parameter structure, regeneration, and `p[6]` mechanism as the cause.
+
+The corrected maneuver explicitly selects `log.LongitudinalPersonality.aggressive` and derives `initial_distance_lead` from `get_STOP_DISTANCE(log.LongitudinalPersonality.aggressive)`, yielding 4.0. `ensure_start = True`, the `1e-3` acceleration threshold, duration, lead-speed timeline, breakpoints, e2e matrix, and force-decel matrix remain unchanged. Corrected evidence is 1 passed / 15 subtests targeted and 4 passed / 58 subtests full longitudinal; no test threshold was weakened.
+
+The implementation checkpoint changed six files with 234 insertions and 22 deletions. It is independently revertible without reverting E-001, E-002, PORT-01, PORT-02, PORT-03, or CFG-01. Reverting it removes the seven-parameter F-002 source, tests, and resume fixture adaptation; ignored long-MPC artifacts must then be regenerated for the restored six-parameter model.
+
+The user target of an approximately 1–2 m physical stopped gap remains unmapped. Raw 1.0/1.5/2.0 inputs are deterministic coordinate-space test cases only and are not physical bumper-gap claims. Physical mapping requires C3X stationary-vehicle measurement and later validation.
 
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
 - F-004 / D-009 Acceleration Personality and CFG-01 externalization are implemented; C3X and vehicle validation remain outstanding.
-- F-002 donor/dependency/numerical closure is complete (`READY_F002`); implementation and all implementation/solver/vehicle validation remain outstanding.
-- F-005 low-speed jerk / acceleration-response numerical decision remains unresolved.
+- F-002 Stop Distance is implemented and deterministic/native/build verification passed; physical stopped-gap mapping, C3X, and vehicle validation remain outstanding.
+- F-005 low-speed jerk / acceleration-response donor and numerical closure remains unresolved.
 - Future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
@@ -241,7 +268,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`F002_IMPLEMENTATION_A` — add test-first TOP01003 stop-distance parameterization, regenerate the HANK long-MPC solver for `PARAM_DIM = 7`, and verify the deterministic/native dimension and data-flow contract frozen in D-020. Keep F-005, UI, CFG schema changes, product 1–2 m mapping, and vehicle claims out of this stage.
+`F005_CLOSURE` — freeze the Low-speed jerk / acceleration-response donor behavior and numerical/solver dependency boundary before implementation. The closure must distinguish acceleration response, jerk cost, previous-acceleration cost, PORT-02 lead pull-away behavior, PORT-03 Acceleration Personality, F-002 Stop Distance, the `COMFORT_BRAKE` decision, low-speed start response, and ACC versus blended behavior. Do not implement F-005 during closure.
 
 ## Commit map and rollback
 
@@ -258,5 +285,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 | PORT-03 | `dab63d6ea1dcbc23db11ced15c6b08036404bafa` | Revert PORT-03 checkpoint independently |
 | CFG-01 closure | `d082d743a6a7d3273246f60fad0a3830a6f2b3aa` | Documentation-only frozen config boundary |
 | CFG-01 | `5951b7f9392cae5284c5e09effdd4bdcd120b171` | Revert CFG-01 checkpoint independently |
+| F-002 donor closure | `14a6d7049ce155b3f86706c79dab5c1fca28e0dc` | Documentation-only frozen donor/numerical boundary |
+| F-002 | `d2eb41426aa3e299f37ae8ffdc73f1c563015a95` | Revert F-002 source/tests independently, then regenerate the restored six-parameter ignored solver artifacts |
 
-Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-019.
+Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-020.
