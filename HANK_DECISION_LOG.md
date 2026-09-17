@@ -557,6 +557,123 @@ The exact three-mode mapping, UI, numerical field externalization, follow/stop-d
 
 ---
 
+## D-020 — F-002 uses TOP01003 personality stop distance as MPC p[6]
+
+**Status:** Accepted — F-002 donor/dependency/numerical closure complete (`READY_F002`)
+
+**Date:** 2026-09-17
+
+**Decision**
+
+Use B (`CT921/openpilot`, branch `TOP01003`, commit `615799f95e978fbf643d1e762d605b4d5b06499f`) as the canonical F-002 donor. The frozen source is `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py`, especially `get_STOP_DISTANCE()`, `get_safe_obstacle_distance()`, `desired_follow_distance()`, `gen_long_model()`, `gen_long_ocp()`, and `LongitudinalMpc.update()`.
+
+The exact donor presets are:
+
+| `LongitudinalPersonality` | `stop_distance` (m) |
+|---|---:|
+| relaxed | 4.5 |
+| standard | 4.0 |
+| aggressive | 4.0 |
+
+The HANK port increases `PARAM_DIM` from 6 to 7 and appends `stop_distance` at `p[6]`. Existing meanings and positions remain unchanged:
+
+| Parameter | Meaning |
+|---|---|
+| `p[0]` | `a_min` |
+| `p[1]` | `a_max` |
+| `p[2]` | selected `x_obstacle` |
+| `p[3]` | `prev_a` |
+| `p[4]` | `lead_t_follow` |
+| `p[5]` | `lead_danger_factor` |
+| `p[6]` | personality-selected `stop_distance` |
+
+`p[6]` is a live ACADOS parameter at every one of the `N+1` horizon rows. The symbolic comfort distance used by both the obstacle cost and danger-zone constraint is:
+
+```text
+safe(v_ego, t_follow, stop_distance)
+  = v_ego**2 / (2 * COMFORT_BRAKE)
+  + t_follow * v_ego
+  + stop_distance
+```
+
+The lead-relative desired distance remains:
+
+```text
+desired(v_ego, v_lead, t_follow, stop_distance)
+  = safe(v_ego, t_follow, stop_distance)
+  - get_stopped_equivalence_factor(v_lead, v_ego)
+```
+
+The current C/TOP096-derived stopped-equivalence transform remains authoritative. F-002 does not replace it with B's pull-away formula. The selected stop distance must also be used for the ACC cruise obstacle and both blended-mode lead-comfort/source checks. Populating only the ACC branch would create inconsistent cost, constraint, and source-selection semantics.
+
+**HANK compatibility boundary**
+
+- Keep `COMFORT_BRAKE = 2.5` m/s². B's `COMFORT_BRAKE = 1.75` is donor context and an excluded F-005/numerical decision, not an F-002 dependency.
+- Preserve E-001 `p[0:2]` acceleration-bound behavior, E-002 final mode synchronization, PORT-01 Dynamic Follow at `p[4]`, PORT-02 stopped equivalence and obstacle selection at `p[2]`, and PORT-03 acceleration-profile bounds.
+- Use the effective `LongitudinalPersonality` already passed from `LongitudinalPlanner` to the MPC. Consequently, the existing gap-button personality and APM's existing effective-personality override select the corresponding frozen donor preset. F-002 adds no APM/gap handling, writes no personality state, and adds no CFG authority.
+- CFG-01 v1 remains exactly `{version, dynamic_follow, accel_profile}`. It gains no stop-distance field and no schema change.
+- With `CP.openpilotLongitudinalControl == False`, the planner may calculate a stop-distance parameter, but `controlsd` keeps `CC.longActive` false and factory TSS retains longitudinal actuation authority. F-002 does not change the Stock Long boundary.
+
+The B `ToyotaTune` hook (`+0.5 m` when `ToyotaTune` is true and `SMART_DSU` is absent) is a rejected donor side effect. Do not import its Params read, Toyota flag dependency, or correction. C is comparison evidence only: at commit `3d75e471c74fccf0067dcda8cfe1374cf1268215` it also uses `PARAM_DIM = 7` and `p[6]`, with relaxed/standard/aggressive values 5.0/4.5/4.0 and `COMFORT_BRAKE = 2.5`; its `+1.5 m` Toyota/dynamic-follow correction and braking-offset logic are outside F-002.
+
+**Why seven parameters are required**
+
+Runtime/personality-selectable stop distance participates inside the generated nonlinear cost and constraint expressions. A six-parameter solver can change it only by rebuilding for each value or by overloading an existing parameter such as `x_obstacle`. Rebuilding per value is not runtime selection; shifting `x_obstacle` changes its established obstacle/source meaning and does not faithfully represent an independent comfort-distance input throughout ACC and blended logic. Neither is a credible compatible implementation. The source model, generated solver, Python parameter array, and runtime API must therefore all agree on seven parameters.
+
+Regenerate from the final HANK model; never copy B generated files. `selfdrive/controls/lib/longitudinal_mpc_lib/SConscript` defines the generator as:
+
+```text
+cd selfdrive/controls/lib/longitudinal_mpc_lib && python3 long_mpc.py
+```
+
+and the repository build as:
+
+```text
+scons -u -j4
+```
+
+Affected ignored/generated outputs include `acados_ocp_long.json`, the `c_generated_code` model/cost/constraint C sources and headers, `acados_solver_long.c/.h`, `acados_sim_solver_long.c/.h`, `acados_solver.pxd`, Cython output, and the native solver/Cython shared libraries. Implementation evidence must show `PARAM_DIM == 7`, symbolic `model.p` length 7, JSON `np == 7`, generated `LONG_NP == 7` and `casadi_np == 7`, runtime `params.shape == (N+1, 7)`, and successful native `set('p')`/solve. Clean-generation evidence must remove or isolate only these ignored long-MPC outputs, regenerate from HANK source, and build them. Rollback must restore the six-parameter source and regenerate/rebuild six-parameter artifacts before running the old code.
+
+**Numerical meaning and product boundary**
+
+At `v_ego = v_lead = 0`, the stopped-equivalence term and velocity terms are zero, so the MPC desired obstacle distance equals raw `stop_distance`. At equal low nonzero speed `v`, the strict TOP096 pull-away gate is false and equal braking terms cancel, leaving `t_follow * v + stop_distance`. With a stationary lead and moving ego, it is `v_ego**2 / (2 * 2.5) + t_follow * v_ego + stop_distance`. In all cases, increasing `p[6]` by one metre increases the symbolic desired distance by one metre.
+
+This does not prove that the raw value is the physical bumper-to-bumper gap. `lead.dRel` is documented from the ego front bumper, and vision distance is transformed into the radar coordinate, but the inspected source does not establish that every lead target is the physical rear bumper. Radar/model target geometry, filtering, cost/slack tradeoffs, state estimation, actuation, and stop/start behavior can change the observed vehicle gap. No geometry offset is invented here.
+
+The exact B values 4.5/4.0/4.0 form the reproducible donor preset and the only initial F-002 selection set. There is no arbitrary raw stop-distance input. Implementations must reject an unsupported personality and must not place non-finite or non-positive values into `p[6]`. Candidate 1.0/1.5/2.0 values may be deterministic bounded numerical test cases only; they are not frozen as physical 1–2 m gaps or exposed as configuration. A future HANK `緊湊 / 一般 / 舒適` mapping requires a separate versioned schema/product decision, a finite bounded whitelist, C3X evidence, and stationary vehicle measurement before any 1–2 m claim.
+
+**Implementation test contract**
+
+F-002 implementation is test-first and must cover:
+
+1. exact relaxed/standard/aggressive donor presets and unsupported-personality rejection;
+2. `p[6]` at every horizon row with no stale value through personality and ACC/blended transitions;
+3. unchanged `p[0:6]` meanings, including E-001 DTSC bounds and PORT-01 `p[4]`;
+4. zero-speed and low-speed equations with an independent donor-equation oracle;
+5. Dynamic Follow OFF/ON changing only `t_follow`, with stop-distance selection orthogonal;
+6. unchanged TOP096 pull-away formula and obstacle transform;
+7. unchanged Acceleration Personality upper-bound behavior;
+8. ACC cruise-obstacle, symbolic cost, and danger constraint use of `p[6]`;
+9. blended cost/constraint and both lead-comfort checks using the same `p[6]`;
+10. effective-personality transitions, including relaxed/standard/aggressive, APM, gap-source transitions, and no CFG writes;
+11. Stock Long retaining no longitudinal actuation authority;
+12. Python/model/JSON/generated/native/runtime dimension agreement at 7;
+13. native solver status, finite params/v/a/j, and reset evidence;
+14. donor-preset restoration and candidate closer values only as finite numerical cases;
+15. all existing E-001, E-002, PORT-01, PORT-02, PORT-03, CFG-01, and longitudinal regressions;
+16. full `scons -u -j4`, Ruff on changed files, and `git diff --check`;
+17. existing longitudinal SQP_RTI status-3 diagnostics compared with baseline 42.
+
+**Excluded**
+
+B Toyota interface, CarState, CarController, toyotacan, Panda safety, custom cereal, AccelController, F-005 jerk/response changes, `COMFORT_BRAKE = 1.75`, B pull-away behavior, ToyotaTune correction, UI, a three-mode product mapping, live arbitrary stop-distance edits, SecOC changes, LongControl replacement, C braking offset, C `+1.5 m` correction, and wholesale donor generated artifacts.
+
+**Validation limit**
+
+This closure freezes source, parameter, generation, and deterministic test boundaries. It does not validate native implementation output, C3X behavior, physical stopped gap, vehicle behavior, deployment safety, or release acceptance.
+
+---
+
 ## Future decision-entry template
 
 ```text

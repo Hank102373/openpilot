@@ -1,6 +1,6 @@
 # HANK current implementation state
 
-Updated: 2026-09-17. Scope: durable implementation and verification state through CFG-01. This is not a release or vehicle-validation approval.
+Updated: 2026-09-17. Scope: durable implementation and verification state through CFG-01 plus the F-002 donor closure. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
@@ -209,11 +209,27 @@ Verification:
 
 The checkpoint changed 6 files with 879 insertions and 12 deletions. Exact HANK three-mode mapping, UI, numerical field externalization, follow/stop-distance tuning, F-005, disengaged live apply, and DP-toggle bundling remain deferred.
 
+### F-002 closure — Stop Distance from TOP01003
+
+- Closure result: `F002_CLOSURE: READY_F002`
+- Canonical donor: B / `CT921/openpilot`, branch `TOP01003`
+- Donor commit: `615799f95e978fbf643d1e762d605b4d5b06499f`
+- Donor file: `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py`
+- Production implementation: not started
+
+D-020 freezes the donor presets as relaxed 4.5 m, standard 4.0 m, and aggressive 4.0 m. The implementation must append live `stop_distance` as `p[6]`, increasing `PARAM_DIM` from 6 to 7 while preserving `p[0]` through `p[5]`. The parameter participates in the generated cost and danger constraint and must be populated consistently in ACC and blended operation, including the ACC cruise obstacle and blended lead-comfort checks.
+
+HANK keeps `COMFORT_BRAKE = 2.5` m/s², the C/TOP096 pull-away transform, E-001 acceleration bounds, E-002 mode synchronization, PORT-01 Dynamic Follow, PORT-03 Acceleration Personality, CFG-01 v1, and the Toyota Stock Long authority boundary. B's `COMFORT_BRAKE = 1.75`, ToyotaTune `+0.5 m`, B pull-away logic, and unrelated Toyota/AccelController/F-005 dependencies are excluded.
+
+The initial port uses only the closed donor mapping from effective `LongitudinalPersonality`; it does not add a CFG field or arbitrary raw input. APM and the existing gap source continue to determine effective personality without writing CFG or adding F-002 state. Candidate 1.0/1.5/2.0 m values are numerical test cases only. Source proves that raw `stop_distance` is the zero-speed MPC desired obstacle distance, but does not prove equivalence to a physical bumper-to-bumper vehicle gap. Product mapping to an approximately 1–2 m stopped gap remains deferred until bounded product values, C3X evidence, and stationary vehicle measurements are accepted.
+
+F-002 requires regeneration from the final HANK symbolic model. Python `PARAM_DIM`, `model.p`, `acados_ocp_long.json`, generated headers/C, runtime arrays, and the native solver must all agree on seven parameters. No B generated artifact may be copied wholesale. No implementation or solver regeneration occurred during this closure.
+
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
 - F-004 / D-009 Acceleration Personality and CFG-01 externalization are implemented; C3X and vehicle validation remain outstanding.
-- F-002 Stop Distance implementation remains unresolved pending donor/dependency closure.
+- F-002 donor/dependency/numerical closure is complete (`READY_F002`); implementation and all implementation/solver/vehicle validation remain outstanding.
 - F-005 low-speed jerk / acceleration-response numerical decision remains unresolved.
 - Future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
 - C3X bench validation has not been completed.
@@ -225,7 +241,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`F002_CLOSURE` — freeze the remaining F-002 Stop Distance donor behavior, numerical constants, `PARAM_DIM` and solver dependency boundary, and its interaction with PORT-01/02/03 and the current CFG architecture before implementation. Do not begin F-002 implementation, F-005, or UI in this closure.
+`F002_IMPLEMENTATION_A` — add test-first TOP01003 stop-distance parameterization, regenerate the HANK long-MPC solver for `PARAM_DIM = 7`, and verify the deterministic/native dimension and data-flow contract frozen in D-020. Keep F-005, UI, CFG schema changes, product 1–2 m mapping, and vehicle claims out of this stage.
 
 ## Commit map and rollback
 
