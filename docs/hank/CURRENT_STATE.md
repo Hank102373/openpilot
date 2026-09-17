@@ -1,13 +1,13 @@
 # HANK current implementation state
 
-Updated: 2026-09-16. Scope: durable implementation and verification state through PORT-03 and the CFG-01 lifecycle closure. This is not a release or vehicle-validation approval.
+Updated: 2026-09-17. Scope: durable implementation and verification state through CFG-01. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
 - Repository: `Hank102373/dp-sienna-0103`
 - Branch: `hank/implementation-v1`
-- Current implementation checkpoint: `dab63d6ea1dcbc23db11ced15c6b08036404bafa`
-- Remote state at synchronization start: `origin/hank/implementation-v1` matched `83b27ef884090b95f6f78172d57db0d7e1ecf157`.
+- Current implementation checkpoint: `5951b7f9392cae5284c5e09effdd4bdcd120b171`
+- Remote state at synchronization start: `origin/hank/implementation-v1` matched `5951b7f9392cae5284c5e09effdd4bdcd120b171`.
 - A/main remains the platform authority at `1986516b325cbf8d173f6ebaea989ed45673c49f`.
 - `sienna-longitudinal-dev` remains research only under D-018.
 - WSL Ubuntu 24.04 provides the executable development environment at `/home/hank/src/dp-sienna-0103`.
@@ -175,26 +175,47 @@ Verification:
 
 Limits: deterministic, solver-facing, regression, lint, and build verification passed. C3X bench, vehicle, deployment, and release validation remain outstanding.
 
-### CFG-01 closure — Versioned config lifecycle
+### CFG-01 — Versioned config lifecycle
 
 - Closure result: `CFG01_CLOSURE: READY_CFG01`
+- Implementation commit: `5951b7f9392cae5284c5e09effdd4bdcd120b171`
+- Message: `feat(config): add HANK longitudinal session config`
+- Implementation result: `CFG01_IMPLEMENTATION_PASS`
 - V1 scope: selection-only Dynamic Follow enable and acceleration-profile selection
 - Snapshot owner: `plannerd`, after CarParams and before planner construction
 - Apply policy: next onroad session only
-- Implementation status: not started
 
-The frozen schema is an exact version 1 JSON object with `dynamic_follow` boolean and `accel_profile` integer 0 through 3. `HankConfigRequested` is persistent; `HankConfigActive` and the `HankConfigSessionStarted` latch clear on offroad transition or ignition on. Active is validated before planner construction, Requested changes do not affect the current session, and standalone planner restarts reuse a valid Active snapshot.
+The implemented schema is an exact version 1 JSON object with `dynamic_follow` boolean and `accel_profile` integer 0 through 3. `HankConfigRequested` is persistent; `HankConfigActive` and the `HankConfigSessionStarted` latch clear on offroad transition or ignition on. All three keys have no registry default. The adapter rejects missing or unknown fields, duplicate keys, wrong types, unsupported versions, invalid JSON, non-standard JSON numeric values, and out-of-range profiles.
 
-Stock Long retains and snapshots the selected config but bypasses it through existing CP guards. APM and the gap button remain on the existing `LongitudinalPersonality` path. Stock restore is the complete false/stock bundle; donor restore is per field. Missing Requested supports the frozen legacy Dynamic Follow migration, while corrupt Active or an inconsistent latch rejects initialization until a new session.
+`plannerd` snapshots after valid CarParams and before planner construction. Initialization writes and verifies the latch first, then writes, reads back, and validates the complete Active bundle. A valid Active/latch pair is reused across standalone planner restarts; Requested changes apply only after the session state is cleared and the next valid session starts. Missing, corrupt, and I/O-error states remain distinct. Corrupt Requested uses an explicit stock recovery without overwriting the corrupt value; corrupt or inconsistent Active/latch state rejects initialization.
 
-No CFG-01 implementation has occurred. Exact HANK three-mode mapping, UI, numerical field externalization, follow/stop-distance tuning, F-005, disengaged live apply, and DP-toggle bundling remain deferred.
+Legacy `HankDynamicFollow` is migrated only when the new Requested key truly does not exist, using Dynamic Follow false/true and stock acceleration. When new Active and latch are both missing, initialization is allowed only if legacy `HankDynamicFollowActive` is also truly missing. Any existing legacy Active raw value, including `"0"`, `"1"`, or malformed content, rejects same-session initialization; a legacy Active I/O failure fails initialization. A valid new Active/latch pair remains authoritative regardless of legacy Active.
+
+Stock Long retains the snapshot while existing `CP.openpilotLongitudinalControl` guards bypass effective Dynamic Follow and Acceleration Personality behavior. APM and the gap button remain independent. Four PORT-01 lifecycle cases now assert the Requested/Active/SessionStarted contract; donor numerical curves, speed behavior, pitch/downhill handling, `p[4]`, APM, solver behavior, and ON/OFF oracle are unchanged.
+
+Verification:
+
+- CFG adapter: 108 passed
+- CFG plannerd integration: 18 passed
+- Dynamic Follow: 82 passed
+- Acceleration Personality helper/planner: 173 / 47 passed
+- E-001 / E-002 / PORT-02: 4 / 2 / 45 passed
+- Final combined: 483 passed / 58 subtests
+- Existing longitudinal: 4 passed / 58 subtests
+- Existing longitudinal `SQP_RTI` status 3 diagnostic count: 42, matching baseline
+- SCons: PASS, exit 0, 39.86 seconds; only known CasADi 3.7.2 compatibility warnings
+- Ruff and `git diff --check`: PASS
+- Native Params: actual keys verified with types JSON / JSON / BOOL, flags 2 / 144 / 144, no defaults, write/read/remove PASS, and BOOL raw `"1"` PASS
+
+The checkpoint changed 6 files with 879 insertions and 12 deletions. Exact HANK three-mode mapping, UI, numerical field externalization, follow/stop-distance tuning, F-005, disengaged live apply, and DP-toggle bundling remain deferred.
 
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
-- F-004 / D-009 Acceleration Personality is implemented at the PORT-03 checkpoint; CFG-01 externalization and C3X/vehicle validation remain outstanding.
+- F-004 / D-009 Acceleration Personality and CFG-01 externalization are implemented; C3X and vehicle validation remain outstanding.
+- F-002 Stop Distance implementation remains unresolved pending donor/dependency closure.
 - F-005 low-speed jerk / acceleration-response numerical decision remains unresolved.
-- CFG-01 closure is `READY_CFG01`; implementation has not started.
+- Future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
 - Full P0 SecOC/Toyota release acceptance has not been completed.
@@ -204,7 +225,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`CFG01_IMPLEMENTATION` — implement the frozen D-019 version 1 Requested/Active/latch schema, strict validation, legacy Dynamic Follow migration, next-session snapshot lifecycle, planner constructor plumbing, and deterministic tests. Preserve the exclusion boundary; do not begin UI, numerical tuning, three-mode mapping, or F-005.
+`F002_CLOSURE` — freeze the remaining F-002 Stop Distance donor behavior, numerical constants, `PARAM_DIM` and solver dependency boundary, and its interaction with PORT-01/02/03 and the current CFG architecture before implementation. Do not begin F-002 implementation, F-005, or UI in this closure.
 
 ## Commit map and rollback
 
@@ -219,5 +240,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 | PORT-02 | `772a786f55b8c195ffd20f038c7757569590db0d` | Revert PORT-02 checkpoint independently |
 | PORT-03 donor closure | `a2486cd4c6575003c6c804240353d249d9a91e27` | Documentation-only frozen donor boundary |
 | PORT-03 | `dab63d6ea1dcbc23db11ced15c6b08036404bafa` | Revert PORT-03 checkpoint independently |
+| CFG-01 closure | `d082d743a6a7d3273246f60fad0a3830a6f2b3aa` | Documentation-only frozen config boundary |
+| CFG-01 | `5951b7f9392cae5284c5e09effdd4bdcd120b171` | Revert CFG-01 checkpoint independently |
 
 Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-019.
