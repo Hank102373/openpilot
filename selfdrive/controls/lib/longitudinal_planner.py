@@ -195,7 +195,11 @@ class LongitudinalPlanner:
     if dp_flags & DPFlags.APM:
       personality = self.apm.get_personality(v_ego, personality)
 
-    self.mpc.set_weights(prev_accel_constraint, personality=personality)
+    lead_xv_0 = self.mpc.process_lead(sm['radarState'].leadOne)
+    lead_xv_1 = self.mpc.process_lead(sm['radarState'].leadTwo)
+    v_lead0 = lead_xv_0[0, 1]
+    v_lead1 = lead_xv_1[0, 1]
+    self.mpc.set_weights(prev_accel_constraint, personality=personality, v_lead0=v_lead0, v_lead1=v_lead1)
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
 
     # dp - Wrap radarState with virtual lead if available (for turn deceleration)

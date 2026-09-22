@@ -12,6 +12,7 @@ from openpilot.selfdrive.controls import plannerd
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib import long_mpc
 from openpilot.selfdrive.controls.lib.longitudinal_planner import DPFlags, LongitudinalPlanner
 from openpilot.selfdrive.controls.tests.test_dtsc_bounds import make_messages
+from openpilot.selfdrive.controls.tests.test_longitudinal_mode import capture_weight_inputs, expected_d021_weights
 from openpilot.selfdrive.modeld.constants import ModelConstants
 
 
@@ -261,6 +262,7 @@ def test_apm_effective_personality():
 def test_mode_interaction(monkeypatch, transition):
   planner = LongitudinalPlanner(cp(), init_v=20, dynamic_follow_active=True)
   spy = observe(planner)
+  weight_calls = capture_weight_inputs(monkeypatch, planner.mpc)
   sm = make_messages()
   times = np.asarray(ModelConstants.T_IDXS)
   sm['modelV2'].orientation = SimpleNamespace(x=np.zeros(len(times)).tolist())
@@ -280,7 +282,7 @@ def test_mode_interaction(monkeypatch, transition):
     if transition == 'aem':
       assert planner.aem._active == (index == 1)
     blended = mode == 'blended'
-    np.testing.assert_allclose(np.diag(frame['W0']), [0, .1, .2, 5, 40, 1] if blended else [3, 0, 0, 0, 200, 5])
+    np.testing.assert_allclose(np.diag(frame['W0']), expected_d021_weights(weight_calls[-1], mode))
     np.testing.assert_array_equal(frame['p'][:, 5], 1.0 if blended else .75)
     assert frame['source'] == ('e2e' if blended else 'cruise')
     if blended:

@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
+from cereal import log
 
 from dragonpilot.selfdrive.controls.lib import aem
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import N, T_IDXS
@@ -59,6 +60,33 @@ class NativeModeSpy:
     return getattr(self.solver, name)
 
 
+def capture_weight_inputs(monkeypatch, mpc):
+  """Capture inputs before planner updates MPC x0; keep the oracle independent of set_weights."""
+  calls = []
+  original = mpc.set_weights
+
+  def capture(*args, **kwargs):
+    calls.append((float(mpc.x0[1]), bool(args[0]), kwargs['personality'],
+                  float(kwargs['v_lead0']), float(kwargs['v_lead1'])))
+    return original(*args, **kwargs)
+
+  monkeypatch.setattr(mpc, 'set_weights', capture)
+  return calls
+
+
+def expected_d021_weights(inputs, mode):
+  """Test-only arithmetic oracle from D-021; never call production weight code."""
+  if mode == 'blended':
+    return np.array([0., .1, .2, 5., 40. if inputs[1] else 0., 1.])
+  speed, previous, personality, lead0, lead1 = inputs
+  factors = {log.LongitudinalPersonality.relaxed: 1.,
+             log.LongitudinalPersonality.standard: 1.,
+             log.LongitudinalPersonality.aggressive: .45}
+  scale = float(np.interp(speed, [0., 10.], [.9, 1.])) if lead0 >= speed and lead1 >= speed else 1.
+  factor = factors[personality]
+  return np.array([3., 0., 0., 0., factor * (200. if previous else 0.) * scale, factor * 5. * scale])
+
+
 @pytest.mark.parametrize('transition', ['experimental', 'aem'])
 def test_mode_transitions_reach_native_solver(monkeypatch, transition):
   cp = SimpleNamespace(openpilotLongitudinalControl=True, steerRatio=15.0, wheelbase=2.7,
@@ -67,6 +95,7 @@ def test_mode_transitions_reach_native_solver(monkeypatch, transition):
   planner.maa_helper = None
   spy = NativeModeSpy(planner)
   planner.mpc.solver = spy
+  weight_calls = capture_weight_inputs(monkeypatch, planner.mpc)
   sm = make_messages()
   times = np.asarray(ModelConstants.T_IDXS)
   sm['modelV2'].orientation = SimpleNamespace(x=np.zeros(len(times)).tolist())
@@ -84,6 +113,7 @@ def test_mode_transitions_reach_native_solver(monkeypatch, transition):
     sm['modelV2'].acceleration.x = np.full(len(times), -2.5 if stopping else 0.0).tolist()
     planner.update(sm, flags)
     captured = spy.frames[-1]
+    captured['weight_inputs'] = weight_calls[-1]
     captured['expected_mode'] = expected_mode
     captured['expected_v'] = np.interp(T_IDXS, times, sm['modelV2'].velocity.x)
     captured['expected_a'] = np.interp(T_IDXS, times, sm['modelV2'].acceleration.x)
@@ -102,6 +132,7 @@ def test_mode_transitions_reach_native_solver(monkeypatch, transition):
       assert planner.aem._active == (index == 1)
 
   assert len(spy.frames) == 3
+  np.testing.assert_allclose(np.diag(spy.frames[0]['W'][0])[4:6], [180., 4.5], rtol=0, atol=1e-12)
   assert spy.resets == 0, 'Mode transitions must preserve native warm-start state without resets'
   for captured in spy.frames:
     mode = captured['expected_mode']
@@ -110,7 +141,7 @@ def test_mode_transitions_reach_native_solver(monkeypatch, transition):
     assert captured['planner_mode'] == mode
     assert captured['mpc_mode'] == mode, 'E-002: final planner mode did not reach MPC in the same frame'
     blended = mode == 'blended'
-    weights = np.array([0, .1, .2, 5, 40, 1] if blended else [3, 0, 0, 0, 200, 5], dtype=float)
+    weights = expected_d021_weights(captured['weight_inputs'], mode)
     for stage in range(N + 1):
       expected_weights = weights.copy()
       expected_weights[4] *= np.interp(T_IDXS[min(stage, N - 1)], [0, 1, 2], [1, 1, 0])

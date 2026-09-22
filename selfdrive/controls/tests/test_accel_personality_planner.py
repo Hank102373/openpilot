@@ -12,7 +12,7 @@ from openpilot.selfdrive.controls.lib import longitudinal_planner as lp
 from openpilot.selfdrive.controls.lib.accel_personality import AccelProfile
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import N, T_IDXS, get_STOP_DISTANCE
 from openpilot.selfdrive.controls.tests.test_dtsc_bounds import make_messages
-from openpilot.selfdrive.controls.tests.test_longitudinal_mode import NativeModeSpy
+from openpilot.selfdrive.controls.tests.test_longitudinal_mode import NativeModeSpy, capture_weight_inputs, expected_d021_weights
 from openpilot.selfdrive.controls.tests.test_dynamic_follow import donor_at_speed
 from openpilot.selfdrive.modeld.constants import ModelConstants
 
@@ -122,6 +122,7 @@ def test_blended_does_not_use_profile_upper(turn_calls, profile):
 @pytest.mark.parametrize('transition', ['experimental', 'aem'])
 def test_final_mode_transitions(monkeypatch, turn_calls, profile, transition):
   planner, spy, sm = setup(profile)
+  weight_calls = capture_weight_inputs(monkeypatch, planner.mpc)
   clock = [100.]
   monkeypatch.setattr(aem, 'time', SimpleNamespace(monotonic=lambda: clock[0]))
   t = np.asarray(ModelConstants.T_IDXS)
@@ -139,7 +140,7 @@ def test_final_mode_transitions(monkeypatch, turn_calls, profile, transition):
     if transition == 'aem':
       assert planner.aem._active == (index == 1)
     blended = mode == 'blended'
-    weights = np.array([0, .1, .2, 5, 40, 1] if blended else [3, 0, 0, 0, 200, 5], dtype=float)
+    weights = expected_d021_weights(weight_calls[-1], mode)
     for stage in range(N + 1):
       expected = weights.copy()
       expected[4] *= np.interp(T_IDXS[min(stage, N - 1)], [0, 1, 2], [1, 1, 0])
