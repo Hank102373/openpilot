@@ -674,6 +674,58 @@ This closure freezes source, parameter, generation, and deterministic test bound
 
 ---
 
+## D-021 — F-005 uses TOP01003 low-speed responsiveness in ACC
+
+**Status:** Accepted — F-005 Phase-1 donor/numerical closure complete (`READY_F005`)
+
+**Date:** 2026-09-22
+
+**Decision**
+
+Use B (`CT921/openpilot`, branch `TOP01003`, commit `615799f95e978fbf643d1e762d605b4d5b06499f`) as the primary F-005 donor. Freeze `get_jerk_factor()` and `LongitudinalMpc.set_weights()` from its `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py` and processed-lead flow from `selfdrive/controls/lib/longitudinal_planner.py`. C/TOP096 (`3d75e471c74fccf0067dcda8cfe1374cf1268215`) is comparison only. Do not combine B and C or invent an intermediate HANK scale.
+
+**D1 — Exact low-speed scale.** Start `j_ego_v_ego` and `a_change_v_ego` at `1.0`. If both processed stage-0 lead velocities satisfy `v_lead0 >= v_ego` and `v_lead1 >= v_ego`, set each to `np.interp(v_ego, [0, 10], [0.9, 1.0])`, retaining standard endpoint behavior. Otherwise both remain `1.0`. B1 stopped/no-lead native evidence: current `a[1] = 0.028686`, `j[0] = 0.413085`; exact B `a[1] = 0.032822`, `j[0] = 0.472635`. C's `0.05 -> 1.0` low-speed scale is rejected for Phase 1 because its measured response was many times larger.
+
+**D2 — Exact jerk factors.** Relaxed `1.0`, Standard `1.0`, Aggressive `0.45`. Only Aggressive changes from HANK's `0.50`. Reject C's Relaxed `1.0`, Standard `0.5`, Aggressive `0.22`.
+
+**D3 — Processed two-lead AND gate.** `process_lead()` creates a synthetic `v_ego + 10 m/s` lead for each missing real lead. Thus no-lead cruise activates scaling; with one real lead, that lead determines the gate; with two, both must pass. Any processed lead below ego speed immediately restores factors to `1.0`. At ego speed zero a negative raw `vLead` may clip to zero and pass the non-strict gate. B1 observed a Standard stage-0 W[4]/W[5] change from `184/4.6` to `200/5` at 2 m/s when a lead became slower, an approximately 8.7% immediate cost jump. Accept donor discontinuity for Phase 1. Add no hysteresis, debounce, filtering, epsilon, or new lead state before vehicle evidence.
+
+**D4 — ACC only.** Preserve `A_CHANGE_COST = 200`, `J_EGO_COST = 5`, and current W[4] horizon decay. In ACC:
+
+```text
+W[4] = jerk_factor * (A_CHANGE_COST if prev_accel_constraint else 0) * a_change_v_ego
+W[5] = jerk_factor * J_EGO_COST * j_ego_v_ego
+```
+
+`prev_accel_constraint = not (reset_state or carState.standstill)` remains authoritative: when false W[4] stays zero, while W[5] still follows its formula. Blended remains exactly `[0, 0.1, 0.2, 5.0, 40 if prev_accel_constraint else 0, 1.0]`, without B low-speed factors.
+
+**D5 — Planner data flow.** Pass `radarState.leadOne` and `leadTwo` separately through `mpc.process_lead()`, take `[0, 1]` from each processed trajectory, then call `mpc.set_weights(prev_accel_constraint, personality=effective_personality, v_lead0=v_lead0, v_lead1=v_lead1)`. `mpc.update()` will process the leads again for obstacles. Accept this donor-style duplicate processing for Phase 1; do not refactor it away during implementation. The planner's existing `selfdriveState.personality`, overridden by APM when active, is the same effective personality passed to `set_weights()` and `update()`. Add no independent Params read, second personality state, polling, or APM redesign.
+
+**Preserved boundaries and exclusions**
+
+- Keep E-001 solver bounds at `p[0:2]`, E-002 ACC/blended synchronization, PORT-01 Dynamic Follow at `p[4]`, PORT-02 stopped-equivalence/pull-away, PORT-03 maximum Acceleration Personality cap, CFG-01 session configuration/profile selection, F-002 Stop Distance at `p[6]`, and Toyota Stock Long authority.
+- Exclude B MIN_ACCEL_PROFILES. B primarily uses them for the ACC cruise synthetic-obstacle lower envelope, not solver `p[0]` or lead braking authority. Low-speed donor minima are less negative than stock `-1.2 m/s²`; PORT-03 remains maximum-acceleration-only.
+- Preserve current HANK DASR. B1's 30-frame low-speed no-lead planner trace had `0/30` raw-target clips for Current and B; temporary B DASR bypass changed final target by `0.0`. Other bound histories and deceleration scenarios remain untested. Do not import B fixed slew or tune DASR in F-005.
+- Preserve `COMFORT_BRAKE = 2.5 m/s²`; reject B's `1.75`. This constant changes ego safe distance, stopped equivalence, lead obstacles, PORT-02 behavior, and follow/braking geometry; it is not a hard actuator brake limit. A future change requires a separate accepted numerical decision.
+- Exclude C's `0.05 -> 1.0` scale, Aggressive `0.22`, Standard `0.5`, `braking_offset`, `smoother_braking`, `t_follow /= braking_offset`, blended W[4] scaling, blended danger-cost change, and stop-distance correction. C remains comparison only.
+- Do not import donor planner, AccelController, SmartCruise, SpeedLimit stack, ToyotaDriveMode/interface/CarState/CarController, toyotacan, Panda, SecOC, or custom cereal.
+
+**Solver/build contract**
+
+Phase-1 implementation changes runtime cost weights and planner lead-data flow only. No `PARAM_DIM` change, `model.p` change, CasADi symbolic-model change, solver regeneration, or generated-source change is expected. Production seams are only `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py` and `selfdrive/controls/lib/longitudinal_planner.py`, plus focused tests.
+
+**Implementation test contract**
+
+Deterministically verify exact B factors for Relaxed/Standard/Aggressive; interpolation at 0, midpoint, and 10 m/s; both processed leads `>=` activating and either `<` disabling scaling; no-lead and one-real/one-synthetic behavior; the ego-zero clipped-lead edge; exact ACC W[4]/W[5] and existing W[4] horizon decay; W[4] remaining zero when `prev_accel_constraint` is false; unchanged blended weights; planner processed-lead path; gate transitions without stale weights; and APM effective-personality transitions. Check unchanged PORT-02 obstacles, PORT-03 max cap, F-002 `p[6]`, Dynamic Follow `p[4]`, E-001 `p[0:2]`, E-002 transitions, DASR interaction, and Stock Long authority. Include native finite/status/reset evidence, an acceleration-side case, a slower-lead/deceleration-side case proving low-speed scaling disables, full longitudinal regression, SQP_RTI status-3 comparison with baseline 42, build, Ruff, and diff checks. Deterministic results are not vehicle-safety evidence.
+
+**User-goal and validation boundary**
+
+Prompt launch is partially addressed by PORT-02 and receives a modest measurable F-005 addition (`a[1] = 0.008913 -> 0.010540 m/s²` in B1's lead pull-away case); C3X sufficiency is unknown. More aggressive acceleration remains partially addressed: PORT-03 owns the positive acceleration cap, and F-005 may approach it more readily but does not raise it. Earlier deceleration and stronger required deceleration are **not addressed by accepted B F-005**. Keep `F005_DECEL_STUDY` unresolved after Phase-1 responsiveness implementation to identify their actual owner. Do not silently change `COMFORT_BRAKE`, PORT-01, PORT-02, PORT-03, F-002, or DASR without another accepted decision. Physical 1–2 m mapping, three-mode product mapping, profile UI, HANK/TSS selector, C3X bench, V0–V3, P0/SecOC/Toyota release acceptance, and Phase 1 completion remain unresolved.
+
+This decision freezes implementation scope, not implementation completion, C3X or vehicle behavior, deployment safety, main merge, or release acceptance.
+
+---
+
 ## Future decision-entry template
 
 ```text

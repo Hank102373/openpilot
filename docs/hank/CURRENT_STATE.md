@@ -1,6 +1,6 @@
 # HANK current implementation state
 
-Updated: 2026-09-17. Scope: durable implementation and verification state through F-002. This is not a release or vehicle-validation approval.
+Updated: 2026-09-22. Scope: durable implementation and verification state through F-002, plus F-005 Phase-1 closure. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
@@ -252,12 +252,21 @@ The implementation checkpoint changed six files with 234 insertions and 22 delet
 
 The user target of an approximately 1–2 m physical stopped gap remains unmapped. Raw 1.0/1.5/2.0 inputs are deterministic coordinate-space test cases only and are not physical bumper-gap claims. Physical mapping requires C3X stationary-vehicle measurement and later validation.
 
+### F-005 — Low-speed responsiveness closure
+
+- `F005_CLOSURE_A_PASS`: current/B/C source, numerical, and ownership boundaries mapped without repository changes.
+- `F005_CLOSURE_B1_PASS`: temporary runtime weight oracle, native MPC comparisons, lead-gate transitions, ACC/blended check, and 30-frame planner/DASR trace completed without production changes.
+- `F005_CLOSURE = READY_F005`: D-021 accepts exact B/TOP01003 Phase-1 ACC responsiveness weights, processed two-lead gate, donor-style planner data flow, and B jerk factors. C/TOP096 remains comparison only. **No F-005 production implementation has occurred yet.**
+
+B1 measured stopped/no-lead Aggressive `a[1]` of `0.028686 -> 0.032822 m/s²` and lead pull-away `0.008913 -> 0.010540 m/s²`, with native status 0 and finite output. In the 30-frame low-speed no-lead trace, neither Current nor B experienced DASR clipping (`0/30`), and B versus a temporary DASR bypass had `0.0` maximum final-target difference. These observations do not validate C3X or vehicle response. D-021 preserves `COMFORT_BRAKE = 2.5`, DASR, blended weights, and existing feature ownership; it excludes B MIN profiles and C cross-feature tuning. Runtime cost weighting requires no solver regeneration.
+
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
 - F-004 / D-009 Acceleration Personality and CFG-01 externalization are implemented; C3X and vehicle validation remain outstanding.
 - F-002 Stop Distance is implemented and deterministic/native/build verification passed; physical stopped-gap mapping, C3X, and vehicle validation remain outstanding.
-- F-005 low-speed jerk / acceleration-response donor and numerical closure remains unresolved.
+- F-005 donor/numerical closure is `READY_F005`; Phase-1 implementation and verification remain outstanding.
+- `F005_DECEL_STUDY` remains unresolved: earlier deceleration and stronger required deceleration need separate owner/numerical analysis after responsiveness implementation. It must not silently retune `COMFORT_BRAKE`, Dynamic Follow, pull-away, AccelProfile, Stop Distance, or DASR.
 - Future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
@@ -268,7 +277,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`F005_CLOSURE` — freeze the Low-speed jerk / acceleration-response donor behavior and numerical/solver dependency boundary before implementation. The closure must distinguish acceleration response, jerk cost, previous-acceleration cost, PORT-02 lead pull-away behavior, PORT-03 Acceleration Personality, F-002 Stop Distance, the `COMFORT_BRAKE` decision, low-speed start response, and ACC versus blended behavior. Do not implement F-005 during closure.
+`F005_IMPLEMENTATION_A` — implement the D-021 frozen B/TOP01003 Phase-1 ACC responsiveness contract with focused tests. Preserve all D-021 ownership boundaries and verify before any checkpoint. No implementation occurred during closure.
 
 ## Commit map and rollback
 
@@ -288,4 +297,4 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 | F-002 donor closure | `14a6d7049ce155b3f86706c79dab5c1fca28e0dc` | Documentation-only frozen donor/numerical boundary |
 | F-002 | `d2eb41426aa3e299f37ae8ffdc73f1c563015a95` | Revert F-002 source/tests independently, then regenerate the restored six-parameter ignored solver artifacts |
 
-Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-020.
+Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-021.
