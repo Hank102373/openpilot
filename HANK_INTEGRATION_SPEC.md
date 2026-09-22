@@ -142,14 +142,16 @@ TOP code must not cross the P0 trust boundary unless a later decision explicitly
 - **Rule:** No blended B+C+new-HANK formula without explicit decision and regression data
 - **Status:** Pending final numerical/solver decision
 
-### F-006 — HANK three user modes
+### F-006 — HANK three user modes / UI-01
 
-- **Source:** HANK-owned configuration layer
-- **Modes:** `緊湊 / 一般 / 舒適`
-- **Strategy:** Configure donor algorithms; do **not** replace donor algorithms
-- **Requirements:** every exposed value has type, unit, min/max, default, validation and donor-original preset
-- **Apply policy:** validate -> save -> apply at safe state/profile transition/engagement boundary; safety-relevant values must not change arbitrarily every control cycle
-- **Status:** Approved
+- **Source/authority:** HANK-owned versioned CFG, D-010 and accepted D-023.
+- **Primary mode names and exact mapping:** `緊湊 = Aggressive + sport(0)`; `一般 = Standard + normal(1)`; `舒適 = Relaxed + eco(2)`. These select existing donor inputs, not new MPC formulas.
+- **Dynamic Follow:** independent Requested boolean; mode changes preserve it. Existing personality curves, Stop Distance and F-005 use the planner's APM-effective personality. APM does not edit the selected mode or acceleration profile.
+- **Original/default restore:** a separate advanced action selects internal `original` (base Standard, acceleration stock(3), Dynamic Follow false); it is not a fourth main HANK mode. D-022 gain/cap remain separate C3X bench calibration, not mode values. Real-time `+/-` is `POST_RC_TUNING`.
+- **Apply boundary:** validated whole v2 Requested save is allowed while engaged; Active and behavior change only on the next legitimate onroad session. Same-session planner restart reuses Active. Ordinary profile edits never request a Toyota/Onroad cycle. UI distinguishes Requested, Active and pending.
+- **Gap button:** under HANK ownership cycles Requested `緊湊 → 一般 → 舒適 → 緊湊`, never live `LongitudinalPersonality`. Under TSS it does not edit HANK active behavior. Existing personality settings must share this ownership rather than bypass it.
+- **Schema/legacy:** D-023 defines exact v2 JSON and strict compatibility for v1; no inferred migration of v1 personality.
+- **Status:** Accepted for implementation only; UI/runtime/bench/vehicle gates remain open.
 
 ### F-007 — DP longitudinal feature set
 
@@ -203,18 +205,15 @@ This is a **hard mode boundary**, not a runtime acceleration selector.
 
 - **Status:** Must-preserve
 
-### F-011 — Fast HANK <-> TSS mode switching
+### F-011 — Safe HANK <-> TSS quick selector / UI-02
 
-- **UI:** HANK may add an on-road camera-screen quick control for desired longitudinal owner (`HANK` / `TSS`).
-- **No hot switch while engaged.**
-- User must take control and disengage openpilot/ACC first.
-- Required preconditions should include at least `selfdriveState.enabled=false`; implementation should additionally verify no active lateral/longitudinal command state before cycling.
-- Save `dp_toyota_stock_lon`, then request an A-supported onroad cycle using `OnroadCycleRequested`.
-- The cycle forces a short Offroad -> Onroad lifecycle so `card`, `CarParams`, Toyota interface and Panda safety are rebuilt without a full C3X OS reboot.
-- Full reboot is fallback only if clean cycle recovery fails.
-- First vehicle validation must be done stationary in a safe environment.
-
-- **Status:** Approved architecture, real-car validation mandatory
+- **Owner Param:** `dp_toyota_stock_lon=true` means TSS factory longitudinal owner; `false` means HANK/openpilot longitudinal owner. This is a hard ownership boundary, not a personality control.
+- **No engaged hot switch:** require fresh `selfdriveState.enabled=false`, `carControl.enabled/latActive/longActive=false` and factory ACC `carState.cruiseState.enabled=false`. ALKA can keep lateral commands active while selfdrive is disengaged. Missing/stale/contradictory signals block a request.
+- **Transaction:** D-024's single coordinator records last confirmed owner, closes an independent selfdrived engagement gate, writes/readbacks the desired Param, issues `OnroadCycleRequested` once, observes Offroad and a new Onroad epoch, then verifies fresh CarParams and Panda safety. Repeated automatic cycles and direct DP-toggle bypasses are prohibited.
+- **Success:** only matching new CarParams `openpilotLongitudinalControl`, Toyota `STOCK_LONGITUDINAL` flag, every connected Panda safety model/param/alternative experience, and fresh command state allow the new owner to become confirmed and engagement to reopen. A consumed request bit, stale `CarParamsPersistent`, or Param write alone is insufficient.
+- **Failure:** restore the Param to `previous_confirmed_owner`, latch `SWITCH_FAILED`, keep engagement blocked, show an explicit failure, and offer full C3X reboot. The rollback write does not prove runtime rollback. After reboot, verify the restored owner before enabling engagement. Never auto-retry.
+- **UI:** camera-view owner indicator/control plus pending, blocked and failure states. TSS view labels HANK modes as stored for future HANK, not active longitudinal behavior. Reuse existing A UI/dialog and lifecycle seams; do not modify Toyota/Panda/SecOC/TSK/authenticated CAN for switching.
+- **Status:** Accepted for implementation only under D-024. C3X bench and stationary target-Sienna validation are mandatory before owner-switch acceptance.
 
 ---
 

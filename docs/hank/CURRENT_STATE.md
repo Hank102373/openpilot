@@ -286,6 +286,12 @@ Study G's 7-gain × 4-cap diagnostic grid had six discrete passing samples: gain
 
 Study G's simplified continuous 10/20 m/s stopped-lead replay reached stable near-zero speed. Pressure approached zero, and existing PORT-01 `p[4]`, F-002 `p[6]`, and PORT-02 pull-away/stopped-equivalence ownership remained. The simulated final position differed from baseline by approximately 0.16–0.18 m due to the preceding trajectory; physical stopped distance is not validated. Goal D remains NO_STRONG_DECEL_CHANGE_JUSTIFIED: no `ACCEL_MIN`, `p[0]`, DASR, LongControl, Toyota rate limiter, `COMFORT_BRAKE`, or F-005 cost change is authorized. C3X timing/load, real radar/actuator response, cut-ins, V0–V3, and release approval remain outstanding.
 
+### Phase-1 HANK modes and owner-selector design closure
+
+`PHASE1_UI_SELECTOR_CLOSURE_STATE: READY_FOR_UI_SELECTOR_IMPLEMENTATION` is accepted under D-023/D-024. The three primary modes are `緊湊=Aggressive+sport`, `一般=Standard+normal`, and `舒適=Relaxed+eco`. Dynamic Follow remains independent. Advanced original/default restore is base Standard + accel stock + Dynamic Follow false, not a fourth main mode. D-022 gain/cap remain C3X bench seeds separate from modes; real-time +/- is POST_RC_TUNING. The new strict CFG v2 Requested/Active contract preserves valid CFG v1 without inferring a profile, and applies profile edits only at the next legitimate onroad session. The gap button cycles Requested rather than live personality; APM remains a temporary effective-personality override.
+
+D-024 freezes a single HANK/TSS coordinator around `dp_toyota_stock_lon` and the existing `OnroadCycleRequested` Offroad→Onroad path. It requires fresh disengaged/no-active-command state, a separate selfdrived engagement interlock, fresh CarParams plus Panda safety verification, and last-confirmed-owner Param rollback with `SWITCH_FAILED`/reboot-only recovery. A rollback write does not validate the failed runtime. Under TSS, the saved HANK profile is shown as inactive future HANK configuration. The existing DP direct Stock Long toggle must not bypass the coordinator. This is documentation/design closure only: no UI, config v2, coordinator or interlock production code has been implemented or tested.
+
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
@@ -293,7 +299,7 @@ Study G's simplified continuous 10/20 m/s stopped-lead replay reached stable nea
 - F-002 Stop Distance is implemented and deterministic/native/build verification passed; physical stopped-gap mapping, C3X, and vehicle validation remain outstanding.
 - F-005 Phase-1 responsiveness is implemented and verified in software; C3X and vehicle response remain unvalidated.
 - D-022 Goal C is SOFTWARE IMPLEMENTED_AND_REGRESSION_VERIFIED; gain/cap bench tuning, C3X, and vehicle validation remain outstanding. Goal D is NO_STRONG_DECEL_CHANGE_JUSTIFIED; do not silently retune `ACCEL_MIN`, `p[0]`, `COMFORT_BRAKE`, Dynamic Follow, pull-away, AccelProfile, Stop Distance, DASR, LongControl, or the Toyota rate limiter.
-- Physical 1–2 m product mapping, future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
+- Physical 1–2 m product mapping remains unvalidated. D-023/D-024 freeze three-mode and HANK/TSS selector architecture; UI/config v2, coordinator/interlock implementation and their verification remain pending.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
 - Full P0 SecOC/Toyota release acceptance has not been completed.
@@ -303,7 +309,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`PHASE1_RC_READINESS` — review the remaining Phase-1 feature/UI scope, C3X bench prerequisites, V0–V3, and P0/full release acceptance as separate gates. D-022 committed-runtime Matrix I/J evidence is complete. Do not jump directly to road validation or claim Phase 1 released, C3X validated, deployment approved, or main merge authorized.
+`PHASE1_UI_SELECTOR_IMPLEMENTATION` — implement D-023 CFG v2/three-mode UI and D-024 guarded owner coordinator/interlock with U/S/R evidence before C3X bench and V0. D-022 committed-runtime Matrix I/J evidence is complete. Do not claim Phase 1 released, C3X validated, deployment approved, or main merge authorized.
 
 ## Commit map and rollback
 

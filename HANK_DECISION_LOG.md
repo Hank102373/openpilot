@@ -777,6 +777,111 @@ Implementation is test-first against the D-022 gates in `HANK_TEST_MATRIX.md`, f
 
 ---
 
+## D-023 — Phase-1 HANK three-mode profile and CFG v2
+
+**Status:** ACCEPTED_FOR_IMPLEMENTATION (design only; not vehicle validated)
+**Date:** 2026-09-22
+
+**Decision**
+
+The only primary HANK modes are `緊湊 / 一般 / 舒適`:
+
+| UI mode | `hank_profile` | Base `LongitudinalPersonality` | PORT-03 `accel_profile` |
+|---|---|---|---|
+| 緊湊 | `compact` | Aggressive | sport (0) |
+| 一般 | `normal` | Standard | normal (1) |
+| 舒適 | `comfortable` | Relaxed | eco (2) |
+
+Dynamic Follow is an independent boolean option: selecting a mode preserves its Requested value and never turns it on/off. Stop Distance, F-005 jerk/weights, and the existing Dynamic Follow curves use the **effective** personality: selected base, then APM's existing temporary override when active. APM changes neither Requested/Active nor PORT-03 acceleration profile. The D-022 gain 0.09 and cap 0.6 m remain a separate **C3X BENCH SEED — NOT PRODUCT DEFAULT** and are never scaled by mode. No new MPC formula, donor curve, Stop Distance constant, or F-005 factor is authorized.
+
+The advanced **Restore original/default** action is separate from the three main buttons. It saves base personality Standard, acceleration profile stock (3, the existing HANK lookup), and Dynamic Follow false. Internal `original` is not a fourth main HANK mode or a universal B donor preset. APM can still temporarily produce effective Aggressive at low speed. Real-time `+/-` is `POST_RC_TUNING`, not a Phase-1 control.
+
+**Exact CFG contract**
+
+D-019's strict v1 shape remains supported: exactly `version=1`, `dynamic_follow: bool`, `accel_profile: int 0..3`. Valid v1 Active/latch is reused unchanged in the current session. A valid v1 Requested is never silently mapped to a mode, because v1 never recorded its personality. Existing v1 behavior remains until an explicit v2 choice/reset; no same-session resnapshot or automatic cycle occurs.
+
+The new UI writes complete v2 Requested JSON, and `plannerd` snapshots the identical shape into Active:
+
+```json
+{"version":2,"dynamic_follow":false,"hank_profile":"original","accel_profile":3}
+```
+
+The exact keys are `version`, `dynamic_follow`, `hank_profile`, `accel_profile`. Version is integer 2; Dynamic Follow is a JSON boolean; profile is one of `compact`, `normal`, `comfortable`, `original`. Acceleration profile must be the corresponding integer 0, 1, 2, 3 respectively. Base personality is derived respectively as Aggressive, Standard, Relaxed, Standard, not duplicated in JSON. Reject unknown/missing/duplicate keys, wrong types, unsupported versions and mismatched profile pairs. Reject invalid UI candidates before writing. For a corrupt persisted Requested on a new session, preserve raw data and record the existing explicit recovery reason, using the v2 `original` bundle. Active/latch corruption or I/O failure remains fail-closed under D-019.
+
+The UI/CFG adapter owns validated atomic whole-JSON Requested saves. Engaged/onroad requests are allowed but never change Active/current control behavior. Only `plannerd` snapshots after a legitimate Offroad→Onroad transition before planner construction. Planner restart or disengage/re-engage in the same onroad session reuses Active. An ordinary profile edit never writes `OnroadCycleRequested`. UI displays separate Active and Requested, plus `pending next session` if different; v1 is shown as legacy/unmapped. The gap button cycles **Requested** `compact → normal → comfortable → compact` and preserves Requested Dynamic Follow. If no v2 Requested exists, its first press explicitly selects `compact`. It never changes Active in the current session.
+
+For v2 Active with HANK longitudinal ownership, `selfdrived` publishes the base personality derived from Active, not from a live `LongitudinalPersonality` Param. `plannerd` and selfdrived must consume the same Active snapshot; missing/invalid Active/latch blocks engagement rather than falling back to a stale Param. The gap button and existing settings personality control must route to Requested HANK profile selection; neither may directly mutate live personality independently. Under v1 Active, gap press still creates a v2 Requested profile instead of changing current personality. Under TSS ownership, gap press does not change HANK profile; UI may edit a stored future HANK Requested profile but must label it inactive. Existing CP guards bypass HANK/TOP longitudinal control under Stock Long.
+
+**UI-01 actions**
+
+| Surface/state | Display and action | Disabled/pending/error |
+|---|---|---|
+| Onroad HANK mode control | Show Active mode, separate Requested mode, and APM effective override indicator when different. Tap one of the three modes to validate/save Requested. | A saved mismatch says `Pending: next onroad session` even while engaged. Invalid/readback-failed saves show an error and do not change Active. No confirmation or cycle is required for this deferred-only action. |
+| TSS owner | Show `TSS owns longitudinal`; any HANK profile is labelled stored for future HANK. | Onroad HANK mode quick control is inactive; settings may still save future HANK Requested. |
+| Settings/advanced | Three primary modes, independent Dynamic Follow option, and separate `Restore original/default` action. | Restore explicitly shows that it will set Standard/stock/false next session; failed validation/write/readback shows error. No fourth main mode or live numerical editor. |
+
+**Scope and provenance**
+
+Expected implementation seams: `common/params_keys.h`, `selfdrive/controls/lib/hank_config.py`, `selfdrive/controls/plannerd.py`, existing planner input, `selfdrive/selfdrived/selfdrived.py`, A/DP UI and focused tests. D-023 extends D-019, superseding only its deferred three-mode mapping and old gap-button independence; v1 history remains intact. The user explicitly accepted mapping, independent Dynamic Follow, advanced original reset, gap-button Requested cycling, and deferred apply after the read-only Phase-1 UI source inventory. This is architecture authority, not implementation or vehicle validation.
+
+---
+
+## D-024 — Verified HANK/TSS owner switch with fail-closed rollback
+
+**Status:** ACCEPTED_FOR_IMPLEMENTATION (design only; C3X/vehicle validation required)
+**Date:** 2026-09-22
+
+**Decision**
+
+`dp_toyota_stock_lon=true` requests TSS factory longitudinal ownership; `false` requests HANK/openpilot longitudinal ownership. This is a hard owner change, never a personality selector. Show it only for the supported target Toyota configuration. The current DP settings toggle that writes the Param directly must use this coordinator, be disabled, or be removed as a selectable UI path; no bypass may remain.
+
+Before either request, require fresh/valid `selfdriveState.enabled == false`, `carControl.enabled == false`, `carControl.latActive == false`, `carControl.longActive == false` and `carState.cruiseState.enabled == false`. Recheck immediately before writing the owner Param. Missing/stale/contradictory data blocks the request. A/DP ALKA may set `latActive` while selfdrive is disengaged, so `enabled=false` alone is insufficient. A request equal to the confirmed current owner is a no-op, not another cycle.
+
+**Coordinator, Params and gate**
+
+One coordinator owns a new atomic `HankOwnerSwitchState`, `PERSISTENT | JSON`, with no registry default. Its exact v1 keys are `version` (integer 1), `confirmed_owner` (`HANK`, `TSS`, or null only before first verification), `target_owner` (`HANK`, `TSS`, or null), and `state` (`UNVERIFIED`, `CONFIRMED`, `REQUESTED`, `CYCLING`, `REINITIALIZING`, `VERIFYING`, `SWITCH_FAILED`). No other writer may alter it. The confirmed owner remains the previous owner until the new one passes full verification. Missing/corrupt state is unverified, not permission to engage. A second BOOL key `HankOwnerSessionVerified` has no default and clears on manager start, Offroad, Onroad and ignition-on. Its only true writer is the coordinator after current-session verification.
+
+`selfdrived` independently fails closed if the session gate is missing/false, transaction is not `CONFIRMED`, the owner Param differs from confirmed owner, or its current CarParams contradict owner. It must prevent new engagement and disable if the gate becomes false; UI-only disabling is insufficient. An explicit alert/disabled selector explains the reason. At clean startup with no transaction, verify the existing owner Param, freshly initialized CarParams and Panda state before recording the initial confirmed owner and opening the gate. Direct out-of-band Param changes invalidate verification; they do not perform a hot switch.
+
+**State machine and ordering**
+
+`CURRENT_HANK`/`CURRENT_TSS` are UI names for `CONFIRMED` plus a true current-session gate. An engaged request is `BLOCKED_ENGAGED` with no write. For a valid opposite-owner request, record `previous_confirmed_owner`, close/read back the engagement gate, observe no active commands again, and persist `REQUESTED` with target. Write/read back `dp_toyota_stock_lon` for the target; persist `CYCLING`; issue `OnroadCycleRequested` once. Observe actual Offroad followed by a new Onroad epoch using `deviceState.startedMonoTime`, then enter `REINITIALIZING` and `VERIFYING`. Consumption of the request bit is not success. No ACC toggle, `OpenpilotEnabledToggle` shortcut, repeated automatic cycle, or parallel Toyota/Panda initialization is allowed.
+
+Verify current-session `CarParams` after the Onroad clear/new card instance, matching `carParams` when published. `CarParamsPersistent` alone is stale-capable and cannot prove success. Require owner Param, fresh CarParams `openpilotLongitudinalControl` (`false` TSS, `true` HANK), and every connected Panda's safety model, safetyParam and alternative experience to match fresh CarParams. Toyota `STOCK_LONGITUDINAL` must be present for TSS and absent for HANK. Require fresh valid selfdrive/CarControl state with no active commands before reopening engagement. Only then atomically persist `CONFIRMED` with new owner/target null and set the session gate true. Unavailable HANK support, stale/missing data, mismatch or finite timeout means failure. Implementation may select polling periods/timeouts but may not weaken these evidence predicates.
+
+During `REQUESTED`, `CYCLING`, `REINITIALIZING` and `VERIFYING`, UI displays pending and disables repeated taps; engagement stays blocked. A restarted coordinator may resume only with provable Offroad/new-Onroad evidence; otherwise it fails closed. On any request/cycle/verification failure, keep the gate false, write/read back the owner Param to `previous_confirmed_owner`, persist `SWITCH_FAILED`, and show explicit failure plus full C3X reboot fallback. If rollback write/readback also fails, remain `SWITCH_FAILED` and blocked. Restoring the Param is **not** proof that the failed runtime reverted. No automatic retry or silent engagement. Failure persists over reboot; only a newly booted session that verifies fresh CarParams and Panda state for the restored previous owner may clear failure, record `CONFIRMED` and open the gate. Otherwise it remains blocked. First physical validation is stationary in a safe environment.
+
+Under TSS, UI shows TSS as active owner and labels any saved HANK profile `stored for future HANK`, never as controlling TSS. Under HANK, UI shows Active versus Requested profile and pending status. Reuse the A camera/HUD, settings, Params, hardwared/manager, card and Panda-state observation seams. Selector implementation may add the coordinator/interlock in UI/config/selfdrived, but may not modify Toyota interface/CarState/CarController, Panda safety, SecOC/TSK, LongControl, longitudinal MPC/solver, authenticated CAN packing/signing or cereal replacement.
+
+**Allowed state transitions**
+
+| State | Required invariant / next event |
+|---|---|
+| `UNVERIFIED` | Session gate false; no target. Fresh initial owner/CarParams/Panda verification may establish `CONFIRMED`. |
+| `CONFIRMED` | Target null; confirmed owner matches Param, fresh CP/Panda and session gate. Valid opposite-owner request closes gate and enters `REQUESTED`. |
+| `REQUESTED` | Previous confirmed owner remains recorded; target is the opposite owner; gate false. Target Param readback permits `CYCLING`. |
+| `CYCLING` | Exactly one cycle request issued, gate false. Observed Offroad then new Onroad epoch permits `REINITIALIZING`. |
+| `REINITIALIZING` | Wait for new card/CarParams/Panda; no engagement. Complete current-session data permits `VERIFYING`. |
+| `VERIFYING` | All owner, flag, Panda and no-command predicates pass to `CONFIRMED` for target; otherwise fail. |
+| `SWITCH_FAILED` | Target/previous confirmed owner retained for diagnosis; gate false. Param rollback alone never changes this state. Only full reboot plus fresh restored-owner verification can return to `CONFIRMED`. |
+
+Every transaction state except `UNVERIFIED` and `CONFIRMED` requires a non-null previous confirmed owner and target; a malformed combination is fail-closed. A precondition rejection (`BLOCKED_ENGAGED`) is transient UI state and never mutates this JSON. Any interruption without evidence to resume safely, timeout, readback mismatch or verification failure enters `SWITCH_FAILED`. The coordinator must not open the gate until `CONFIRMED` is durably read back.
+
+**UI-02 actions**
+
+| Visible state | Action and presentation |
+|---|---|
+| `CURRENT_HANK` / `CURRENT_TSS` | Show verified current owner. Opposite-owner tap opens an explicit takeover/disengage confirmation; confirmation rechecks all preconditions before any write. |
+| `BLOCKED_ENGAGED` / unavailable | Disable the switch and state whether selfdrive, ALKA lateral, factory ACC, stale data or unsupported vehicle blocks it. No Param/cycle write. |
+| `REQUESTED` / `CYCLING` / `REINITIALIZING` / `VERIFYING` | Show target and pending lifecycle; disable further taps and engagement. Never label target as current owner before verification. |
+| `SWITCH_FAILED` | Show previous confirmed owner, failed target, uncertain runtime and explicit reboot fallback. No retry/hot-toggle control; reboot requires its normal confirmation UI. |
+
+**Evidence and relationship**
+
+Read-only inventory confirmed ALKA lateral activity despite `selfdriveState.enabled=false` in `selfdrive/controls/controlsd.py`; cycle consumption in `system/hardware/hardwared.py`; lifecycle key clearing/process restart in `system/manager/manager.py`; Stock Long input before `get_car` in `selfdrive/car/card.py`; Toyota `openpilotLongitudinalControl`/`STOCK_LONGITUDINAL` in `opendbc/car/toyota/interface.py`; and Panda safety reset/reload in `selfdrive/pandad/panda_safety.cc`. No existing complete selector coordinator or hard engagement interlock was found. The user expressly accepted last-confirmed-owner rollback and failed-runtime blocking. D-024 refines D-011 through D-014 without superseding their no-hot-switch/trust-boundary rules. U/S/R/B/V0 tests remain mandatory; this design does not claim a working selector, C3X timing, vehicle safety or Phase-1 completion.
+
+---
+
 ## Future decision-entry template
 
 ```text
