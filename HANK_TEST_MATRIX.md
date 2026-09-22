@@ -429,3 +429,28 @@ Before the first HANK longitudinal road test:
 - [ ] rollback image/branch is available
 
 Only after these checks should V1 road validation begin.
+
+---
+
+## 15. D-022 radar ACC early-decel implementation gates
+
+D-022 is `ACCEPTED_FOR_IMPLEMENTATION`, not implemented or vehicle validated. Implement test-first using the existing native LongitudinalMpc and, where needed, planner-to-MPC data flow. Keep diagnostic gain/cap seeds labelled `C3X BENCH SEED — NOT PRODUCT DEFAULT`; no product value is frozen. The following gates are required before an implementation checkpoint:
+
+| Gate | Required deterministic evidence |
+|---|---|
+| A — Formula | `v_ego - v_lead < 0` and `= 0` produce zero pressure; positive closing produces `gain * closing_speed` until the cap, then saturates. Include exact zero-closing release and finite values. |
+| B — Lead validity | Only `status && radar && radarTrackId >= 0` is eligible. Vision-only, no-lead/synthetic, invalid track ID, and absent-status cases are excluded. |
+| C — Per-lead handling | leadOne only, leadTwo only, both leads, column/identity swap, source-priority crossing, and disappearance of one lead. Each eligible lead receives its own pressure; no per-track state is retained. |
+| D — Mode isolation | ACC applies the candidate. Blended/e2e, no-lead ACC, and vision-only ACC remain exactly baseline at the solver-facing obstacle and output where inputs are otherwise identical. |
+| E — Ownership | `p[4]` Dynamic Follow, `p[6]` Stop Distance, `COMFORT_BRAKE = 2.5`, PORT-02 pull-away, F-005 `W[4]/W[5]`, E-001 `p[0]/p[1]`, and DASR behavior are unchanged. E-002 ACC/blended mode ownership remains intact. |
+| F — Zero-pressure equivalence | With pressure zero, both full obstacle matrix and selected solver-facing `p[2]` match baseline. Do not change the shared `process_lead()` trajectory. |
+| G — Whole horizon and seam | Subtract constant per-lead pressure from every stage of each eligible real-lead ACC obstacle column **before** lead0/lead1/cruise per-stage `min()`. Cruise and ineligible columns are unchanged; do not patch already-selected `p[2]` or post-solver source. |
+| H — Pull-away and final gaps | For `v_lead >= v_ego`, pressure is zero, PORT-02 retains pull-away ownership, PORT-01 retains steady-follow gap, and F-002 retains final stopped geometry. Distinguish geometry equality from history-dependent raw/physical stop position. |
+| I — Cut-in | Normal slower-lead and close stopped-lead cut-ins: capture first five frames, raw target, `j[0]`, QP status/iterations, residuals, solution status, resets and finite output. No new non-finite/reset failure or high-gain weak-first-frame pattern at the implementation bench seed. |
+| J — Native MPC | Representative stopped/slower-lead 20 Hz multi-frame runs show software-level Goal-C onset effect without added QP cap hits or material numerical degradation against matched baseline. Capture gain/cap and solver-facing `p[2]`. Diagnostic samples are not a continuous certified interval. |
+| K — Existing suites | E-001, E-002, PORT-01, PORT-02, PORT-03, F-002, F-005, CFG-01, and their relevant combined regression remain passing. |
+| L — Full longitudinal | Run existing longitudinal maneuver regression and compare pass/subtest and known SQP_RTI diagnostic counts with baseline. |
+| M — Build | Run `scons -u -j4`; no `PARAM_DIM`, CasADi symbolic-model, or generated-solver change is expected. |
+| N — Static/diff | Ruff on changed Python files, `git diff --check`, source-scope review, and no unintended generated tracked artifacts. |
+
+A test failure, new solver failure, or ambiguous ownership change blocks implementation checkpoint. This matrix is a software validation contract; C3X bench, physical gap, radar timing, Toyota actuator response, V0–V3, road/deployment approval, and release acceptance remain separate.

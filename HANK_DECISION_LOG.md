@@ -726,6 +726,57 @@ This decision freezes implementation scope, not implementation completion, C3X o
 
 ---
 
+## D-022 — Radar ACC Stateless Relative-Speed Early-Decel Pressure
+
+**Status:** ACCEPTED_FOR_IMPLEMENTATION — Goal-C software architecture closure; not vehicle validated or release ready
+
+**Date:** 2026-09-22
+
+**Decision**
+
+Implement earlier radar ACC deceleration as stateless, per-lead pressure on existing ACC obstacle geometry. A lead is eligible only when `lead.status && lead.radar && lead.radarTrackId >= 0`. For each eligible real radar lead independently:
+
+```text
+closing_speed = max(v_ego - v_lead, 0)
+pressure = min(cap, gain * closing_speed)
+effective_lead_obstacle = base_lead_obstacle - pressure
+```
+
+Apply the same pressure to every stage of that lead's MPC horizon column, after the existing lead trajectory and PORT-02 stopped-equivalence calculation but **before** per-stage `min(lead0, lead1, cruise)` selection. The expected primary production seam is `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py`; add another production file only if required for tunable HANK constant/parameter ownership. Do not change `process_lead()` output, a shared lead trajectory, the cruise synthetic obstacle, already-selected `p[2]`, planner source after solve, or the blended path. Missing/synthetic leads, vision-only leads, invalid radar track IDs, and blended/e2e mode receive no pressure. When `v_lead >= v_ego`, pressure is exactly zero and releases immediately. There is no hysteresis, acquisition-age tracking, pressure slew, cut-in guard, or per-track persistent state. Pressure zero must preserve baseline obstacle and selected `p[2]` behavior.
+
+**Ownership and solver boundary**
+
+- PORT-01 Dynamic Follow and `p[4]`, PORT-02 pull-away/stopped-equivalence transform, F-002 Stop Distance and `p[6]`, and F-005 low-speed response `W[4]/W[5]` remain under their current owners. Closing-speed pressure does not replace their formulas. At zero closing speed, steady equal-speed following returns to PORT-01/existing MPC geometry, final stopped geometry to F-002, and pull-away to PORT-02.
+- Preserve `COMFORT_BRAKE = 2.5`, E-001 acceleration bounds at `p[0]/p[1]`, `ACCEL_MIN`, DASR, LongControl, Toyota longitudinal rate limiter, Toyota PID/SecOC path, and E-002 ACC/blended mode ownership. Goal D is **NO_STRONG_DECEL_CHANGE_JUSTIFIED**: Studies A–G show current MPC can issue strong negative requests but do not justify increasing negative acceleration authority or modifying these downstream mechanisms. Toyota actuator behavior remains for C3X/closed-loop validation.
+- The mechanism changes only the runtime ACC real-radar lead obstacle column during closing. It does not change `PARAM_DIM`, add a `p[]` slot, change the CasADi symbolic formulation, or require solver regeneration. Do not redesign planner, radar, CFG, UI, Toyota control, solver generation, or model paths for this implementation.
+
+**Why no guard; diagnostic envelope**
+
+Study G found repeatable stateless diagnostic cells with earlier Goal-C raw-deceleration crossing in representative stopped and slower-lead scenarios, no added QP iteration-cap hits across its core matrix, no new solution reset or non-finite output, and no high-gain weak-first-frame close-cut-in pattern. Freeze **NO_GUARD_REQUIRED_FOR_STATELESS_ENVELOPE**. This does not assert that every gain/cap combination is suitable. The diagnostic grid sampled gains `0.004`, `0.02`, `0.0407`, `0.06`, `0.08`, `0.09`, `0.10` and caps `0.6`, `0.8`, `1.0`, `2.0 m`. These six **discrete** cells passed its architecture gates:
+
+| Diagnostic gain | Diagnostic cap (m) |
+|---:|---:|
+| 0.09 | 0.6 |
+| 0.09 | 0.8 |
+| 0.09 | 1.0 |
+| 0.09 | 2.0 |
+| 0.10 | 0.6 |
+| 0.10 | 0.8 |
+
+Do **not** treat `0.09–0.10` gain or `0.6–2.0 m` cap as a proven continuous valid interval or as production values. In the selected matrix, gain `<= 0.08` did not satisfy the Goal-C effectiveness gate; gain `0.10`/cap `1.0 m` added a QP cap hit in the 30→20 m/s lead case; gain `0.10`/cap `2.0 m` reproduced the close-cut-in weak-first-frame/stronger-next-frame response. These are scenario-bound diagnostic observations, not universal safety limits. Study E's static warm-start branch at pressure `0.813→0.814 m` did not reproduce in Study F's physically consistent 20 Hz replay; status zero alone is not proof of QP convergence. Retain numerical diagnostics during implementation.
+
+**Gain/cap ownership and Goal-C limit**
+
+The formula and insertion seam are frozen; **gain and cap are both required BENCH / VEHICLE TUNING parameters, with no final numeric values frozen by D-022**. Make them easy to alter for controlled C3X testing without changing the formula. Do not add UI or extend CFG-01 here. Any initial implementation value must be explicitly labelled `C3X BENCH SEED — NOT PRODUCT DEFAULT` and selected during implementation/bench planning, never silently by this decision. Goal C is **IMPLEMENTATION JUSTIFIED**: Study G repeated software-level earlier raw-deceleration crossings, about one 0.05 s planner frame and approximately 1 m in selected stopped-lead cases. These are diagnostic observations, not product requirements or subjective driving claims.
+
+**Final-gap and validation limit**
+
+In Study G's continuous 10 and 20 m/s simplified approaches, ego reached stable near-zero velocity and pressure fell to approximately `3e-5 m`; `p[4]` and `p[6]` remained unchanged and the effective lead obstacle approached its unpressured value. The replay stopped approximately `0.16–0.18 m` from the baseline final position because the earlier trajectory differed; D-022 does **not** claim identical physical stop locations. Actual stopped gap, perceptual early-decel benefit, radar timing, Toyota actuator behavior, cut-in behavior, C3X load/timing, V0–V3, deployment and road approval remain unvalidated. This is software architecture closure only, not implementation completion, vehicle-safety approval, Phase 1 completion, or release acceptance.
+
+Implementation is test-first against the D-022 gates in `HANK_TEST_MATRIX.md`, followed by focused/native and existing longitudinal regressions, SCons, Ruff, and diff review. Keep the source change small and preserve baseline behavior at pressure zero.
+
+---
+
 ## Future decision-entry template
 
 ```text
