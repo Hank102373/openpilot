@@ -57,6 +57,9 @@ COMFORT_BRAKE = 2.5
 STOP_DISTANCE = 6.0
 CRUISE_MIN_ACCEL = -1.2
 CRUISE_MAX_ACCEL = 1.6
+# D-022 C3X BENCH SEED only; final product gain/cap require bench validation.
+EARLY_DECEL_C3X_BENCH_SEED_GAIN = 0.09
+EARLY_DECEL_C3X_BENCH_SEED_CAP = 0.6
 
 def get_jerk_factor(personality=log.LongitudinalPersonality.standard):
   if personality==log.LongitudinalPersonality.relaxed:
@@ -117,6 +120,14 @@ def get_stopped_equivalence_factor(v_lead, v_ego):
       v_diff_offset * ((26 / 3.6 - v_ego) / (26 / 3.6)), 0,
     )
   return (v_lead**2) / (2 * COMFORT_BRAKE) + v_diff_offset
+
+def get_early_decel_pressure(v_ego, lead):
+  # Only a tracked real radar lead is eligible; absent metadata is not evidence of one.
+  if lead is None or not (lead.status and getattr(lead, 'radar', False) and getattr(lead, 'radarTrackId', -1) >= 0):
+    return 0.
+  closing_speed = max(v_ego - lead.vLead, 0.)
+  return min(EARLY_DECEL_C3X_BENCH_SEED_CAP, EARLY_DECEL_C3X_BENCH_SEED_GAIN * closing_speed)
+
 
 def get_safe_obstacle_distance(v_ego, t_follow, stop_distance=None):
   if stop_distance is None:
@@ -414,6 +425,9 @@ class LongitudinalMpc:
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
       self.params[:,5] = LEAD_DANGER_FACTOR
+      # Apply one stateless frame pressure per real radar lead before obstacle selection.
+      lead_0_obstacle -= get_early_decel_pressure(v_ego, radarstate.leadOne)
+      lead_1_obstacle -= get_early_decel_pressure(v_ego, radarstate.leadTwo)
 
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
