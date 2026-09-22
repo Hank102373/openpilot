@@ -104,3 +104,13 @@ Next: reproduce E-001/E-002 on pinned A, close B Dynamic Follow inputs/callers, 
 | T-001–T-030 acceptance | NOT ACCEPTED | Required executable and physical-stage evidence outstanding |
 
 Final diff for IMPL-00: this report only. Safety-relevant runtime changes: none. No claim of driving safety, behavioral equivalence, or completed Phase 1.
+
+## Current continuation state — D-022 implementation (2026-09-22)
+
+This section records the current state without revising the historical IMPL-00 audit above. The latest production commit is `93340bf33c7e494123a0c2776aa8a35586d47505` (`feat(longitudinal): add radar early-decel pressure`). At this documentation sync start, `origin/hank/implementation-v1` matched that commit and the working tree was clean.
+
+F-005 Goal-C radar ACC early deceleration is **IMPLEMENTED_AND_REGRESSION_VERIFIED** under D-022 `STATELESS_RELATIVE_SPEED_PRESSURE`. Production: `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py` (+14 lines). Tests: `selfdrive/controls/tests/test_radar_early_decel.py` (+240 lines). The C3X BENCH SEED gain `0.09` and cap `0.6 m` are **NOT PRODUCT DEFAULT**, **NOT FINAL TUNING**, and **NOT YET VALIDATED** on C3X or a vehicle. Goal D remains **NO_STRONG_DECEL_CHANGE_JUSTIFIED**.
+
+Evidence: 20 new focused tests; 528 existing targeted tests; 548 combined; full longitudinal 4 tests/58 subtests with 42 baseline-matching `SQP_RTI` status-3 diagnostics; `scons -u -j4` exit 0 in 37.15 seconds with only the known CasADi warning; Ruff and diff check PASS. Native solver-facing pressure and zero-pressure isolation were verified; normal/close cut-ins were finite with no reset. `PARAM_DIM = 7`, `COMFORT_BRAKE = 2.5`, prior feature/parameter ownership, CasADi symbolic model, and tracked generated solver source were preserved. No solver regeneration occurred.
+
+**NEXT: `PHASE1_RC_READINESS`.** C3X bench, real radar/actuator response, physical stopped-gap mapping, V0–V3, P0/full release acceptance, vehicle safety, and deployment approval remain outstanding. No Phase-1 release or main merge is authorized by this software checkpoint.

@@ -434,7 +434,7 @@ Only after these checks should V1 road validation begin.
 
 ## 15. D-022 radar ACC early-decel implementation gates
 
-D-022 is `ACCEPTED_FOR_IMPLEMENTATION`, not implemented or vehicle validated. Implement test-first using the existing native LongitudinalMpc and, where needed, planner-to-MPC data flow. Keep diagnostic gain/cap seeds labelled `C3X BENCH SEED — NOT PRODUCT DEFAULT`; no product value is frozen. The following gates are required before an implementation checkpoint:
+D-022 was `ACCEPTED_FOR_IMPLEMENTATION` at architecture closure and is now software implemented at `93340bf33c7e494123a0c2776aa8a35586d47505`. C3X and vehicle behavior are not validated. The implementation uses the existing native LongitudinalMpc; gain `0.09` and cap `0.6 m` are labelled `C3X BENCH SEED — NOT PRODUCT DEFAULT`, not final product values. The following gates remain the deterministic evidence contract:
 
 | Gate | Required deterministic evidence |
 |---|---|
@@ -452,5 +452,7 @@ D-022 is `ACCEPTED_FOR_IMPLEMENTATION`, not implemented or vehicle validated. Im
 | L — Full longitudinal | Run existing longitudinal maneuver regression and compare pass/subtest and known SQP_RTI diagnostic counts with baseline. |
 | M — Build | Run `scons -u -j4`; no `PARAM_DIM`, CasADi symbolic-model, or generated-solver change is expected. |
 | N — Static/diff | Ruff on changed Python files, `git diff --check`, source-scope review, and no unintended generated tracked artifacts. |
+
+Implementation A/B evidence: 20 new focused tests and 528 existing targeted tests passed (548 combined); full longitudinal passed 4 tests/58 subtests with 42 baseline-matching `SQP_RTI` status-3 diagnostics; `scons -u -j4` exited 0 in 37.15 seconds; Ruff and diff check passed. Native pressure, zero-pressure isolation, and finite/no-reset normal/close cut-ins were verified. The detailed first-five-frame QP/residual and matched 20 Hz onset comparisons specified in gates I/J are not newly claimed by this state sync and remain for `PHASE1_RC_READINESS` review. No C3X or vehicle validation is claimed.
 
 A test failure, new solver failure, or ambiguous ownership change blocks implementation checkpoint. This matrix is a software validation contract; C3X bench, physical gap, radar timing, Toyota actuator response, V0–V3, road/deployment approval, and release acceptance remain separate.

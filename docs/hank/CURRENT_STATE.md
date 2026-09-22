@@ -1,13 +1,13 @@
 # HANK current implementation state
 
-Updated: 2026-09-22. Scope: durable implementation and verification state through F-005 Phase-1 responsiveness, plus D-022 Goal-C/Goal-D software architecture closure. This is not a release or vehicle-validation approval.
+Updated: 2026-09-22. Scope: durable implementation and verification state through D-022 radar ACC early-decel software implementation. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
 - Repository: `Hank102373/dp-sienna-0103`
 - Branch: `hank/implementation-v1`
-- Current implementation checkpoint: `71bde76e1be48113e06e029715480dccb8e5c88f`
-- Remote state at synchronization start: `origin/hank/implementation-v1` matched `71bde76e1be48113e06e029715480dccb8e5c88f`.
+- Current implementation checkpoint: `93340bf33c7e494123a0c2776aa8a35586d47505`
+- Remote state at synchronization start: `origin/hank/implementation-v1` matched `93340bf33c7e494123a0c2776aa8a35586d47505`; working tree was clean.
 - A/main remains the platform authority at `1986516b325cbf8d173f6ebaea989ed45673c49f`.
 - `sienna-longitudinal-dev` remains research only under D-018.
 - WSL Ubuntu 24.04 provides the executable development environment at `/home/hank/src/dp-sienna-0103`.
@@ -270,11 +270,15 @@ E-001 acceleration bounds at `p[0]/p[1]`, E-002 mode synchronization, PORT-01 Dy
 
 Final verification: F-005 focused 36 passed; approved combined regression 532 passed; full longitudinal 4 pytest cases and 58 maneuver subtests passed. `SQP_RTI` status-3 count was 42, matching the previous baseline of 42. SCons passed in 41.8 seconds; Ruff had no new lint regression (`longitudinal_planner.py:49 PIE790` remains a known baseline exception); `git diff --check` passed. No tracked generated solver source changed.
 
-User goals: (A) faster pull-away responsiveness is implemented through PORT-02 and F-005 exact B cost tuning, but subjective sufficiency on C3X/vehicle is unvalidated; (B) more assertive acceleration is implemented within the approved Phase-1 architecture through PORT-03 maximum acceleration and F-005 low-speed response, with vehicle validation pending. (C) earlier radar ACC deceleration has D-022 architecture accepted for implementation, but no Goal-C production implementation or C3X validation yet. (D) stronger required deceleration has NO_STRONG_DECEL_CHANGE_JUSTIFIED; Toyota downstream response remains for C3X/vehicle validation.
+User goals: (A) faster pull-away responsiveness is implemented through PORT-02 and F-005 exact B cost tuning, but subjective sufficiency on C3X/vehicle is unvalidated; (B) more assertive acceleration is implemented within the approved Phase-1 architecture through PORT-03 maximum acceleration and F-005 low-speed response, with vehicle validation pending. (C) earlier radar ACC deceleration is SOFTWARE IMPLEMENTED under D-022 with architecture, source, native MPC regression, and build PASS; C3X/vehicle subjective effect remains unvalidated. (D) stronger required deceleration has NO_STRONG_DECEL_CHANGE_JUSTIFIED; Toyota downstream response remains for C3X/vehicle validation.
 
-### F-005 Goal-C / Goal-D deceleration design freeze
+### F-005 Goal-C / Goal-D deceleration design freeze and implementation
 
-D-022, **Radar ACC Stateless Relative-Speed Early-Decel Pressure**, is ACCEPTED_FOR_IMPLEMENTATION after read-only Studies A–G. Goal C is IMPLEMENTATION JUSTIFIED at software level; no Goal-C production source or tests have been changed yet. The fixed architecture is ACC-only pressure on each valid real radar lead (`status && radar && radarTrackId >= 0`): `closing_speed = max(v_ego - v_lead, 0)`, `pressure = min(cap, gain * closing_speed)`, and `effective_lead_obstacle = base_lead_obstacle - pressure` across that lead's whole horizon before per-stage obstacle selection. No-lead/synthetic, vision-only, blended, and pull-away/non-closing cases have zero pressure; release is immediate. No state, guard, pressure slew, new solver parameter, symbolic change, or solver regeneration is authorized.
+D-022, **Radar ACC Stateless Relative-Speed Early-Decel Pressure**, was ACCEPTED_FOR_IMPLEMENTATION after read-only Studies A–G. Goal C is now SOFTWARE IMPLEMENTED at `93340bf33c7e494123a0c2776aa8a35586d47505`; architecture, source-level implementation, native MPC regression, and build passed. C3X and vehicle subjective results are NOT YET VALIDATED. The fixed architecture is ACC-only pressure on each valid real radar lead (`status && radar && radarTrackId >= 0`): `closing_speed = max(v_ego - v_lead, 0)`, `pressure = min(cap, gain * closing_speed)`, and `effective_lead_obstacle = base_lead_obstacle - pressure` across that lead's whole horizon before per-stage obstacle selection. No-lead/synthetic, vision-only, blended, and pull-away/non-closing cases have zero pressure; release is immediate. No state, guard, pressure slew, new solver parameter, symbolic change, or solver regeneration is authorized.
+
+Implementation uses `STATELESS_RELATIVE_SPEED_PRESSURE` in `selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py` (+14 lines) with focused tests in `selfdrive/controls/tests/test_radar_early_decel.py` (+240 lines). The explicitly labelled **C3X BENCH SEED — NOT PRODUCT DEFAULT** is gain `0.09` and cap `0.6 m`; it is not final tuning or vehicle validated. Each eligible real radar lead independently receives its frame pressure across its whole ACC obstacle horizon before lead0/lead1/cruise per-stage selection. Zero closing releases immediately. No lead/synthetic, vision-only, blended/e2e, and non-closing pull-away retain baseline geometry. There is no state, guard, or slew.
+
+Implementation evidence: 20 new focused tests passed; 528 existing targeted regressions passed (548 combined). Full longitudinal passed 4 tests and 58 subtests; the 42 `SQP_RTI` status-3 diagnostics match baseline. `scons -u -j4` exited 0 in 37.15 seconds with only the known CasADi compatibility warning. Ruff and `git diff --check` passed. Native MPC verified solver-facing pressure for a real closing radar lead, zero-pressure baseline equivalence, and finite/no-reset normal and close cut-ins. `PARAM_DIM = 7`, `COMFORT_BRAKE = 2.5`, E-001 `p[0]/p[1]`, PORT-01 `p[4]`, PORT-02 pull-away, F-002 `p[6]`, F-005 `W[4]/W[5]`, cruise obstacle, blended ownership, DASR, LongControl, Toyota controller/rate limiter/PID, and SecOC were preserved. No CasADi symbolic or tracked generated solver source changed; no solver regeneration was performed. Software verification is not C3X bench, real radar/actuator, physical-gap, or vehicle-safety validation.
 
 Study G's 7-gain × 4-cap diagnostic grid had six discrete passing samples: gain/cap `(0.09, 0.6)`, `(0.09, 0.8)`, `(0.09, 1.0)`, `(0.09, 2.0)`, `(0.10, 0.6)`, `(0.10, 0.8)`. They are not product values or a proven continuous interval. The smaller-gain samples missed the selected Goal-C effectiveness gate; `(0.10, 1.0)` added a QP cap hit and `(0.10, 2.0)` showed a weak-first-frame close cut-in response. Repeated representative stopped/slower lead cases advanced diagnostic raw-deceleration onset by about one 0.05 s frame, with no added QP cap hits in passing cells. Final gain and cap remain BENCH / VEHICLE TUNING parameters, not frozen by D-022.
 
@@ -286,7 +290,7 @@ Study G's simplified continuous 10/20 m/s stopped-lead replay reached stable nea
 - F-004 / D-009 Acceleration Personality and CFG-01 externalization are implemented; C3X and vehicle validation remain outstanding.
 - F-002 Stop Distance is implemented and deterministic/native/build verification passed; physical stopped-gap mapping, C3X, and vehicle validation remain outstanding.
 - F-005 Phase-1 responsiveness is implemented and verified in software; C3X and vehicle response remain unvalidated.
-- D-022 Goal-C architecture is accepted for implementation, but production implementation, gain/cap bench tuning, C3X, and vehicle validation are outstanding. Goal D permits no stronger-deceleration authority change on current software evidence; do not silently retune `COMFORT_BRAKE`, Dynamic Follow, pull-away, AccelProfile, Stop Distance, or DASR.
+- D-022 Goal C is SOFTWARE IMPLEMENTED_AND_REGRESSION_VERIFIED; gain/cap bench tuning, C3X, and vehicle validation remain outstanding. Goal D is NO_STRONG_DECEL_CHANGE_JUSTIFIED; do not silently retune `ACCEL_MIN`, `p[0]`, `COMFORT_BRAKE`, Dynamic Follow, pull-away, AccelProfile, Stop Distance, DASR, LongControl, or the Toyota rate limiter.
 - Physical 1–2 m product mapping, future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
@@ -297,7 +301,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`F005_DECEL_IMPLEMENTATION` — implement the D-022 ACC real-radar lead obstacle-pressure architecture test-first, using explicitly labelled C3X bench-seed gain/cap values chosen during implementation planning. Run the D-022 gates in `HANK_TEST_MATRIX.md`; do not change Goal-D acceleration authority or claim C3X/vehicle validation.
+`PHASE1_RC_READINESS` — review Phase-1 software consistency, remaining D-022 matrix evidence, C3X bench prerequisites, V0–V3, and P0/full release acceptance as separate gates. Do not jump directly to road validation or claim Phase 1 released, C3X validated, deployment approved, or main merge authorized.
 
 ## Commit map and rollback
 
@@ -318,5 +322,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 | F-002 | `d2eb41426aa3e299f37ae8ffdc73f1c563015a95` | Revert F-002 source/tests independently, then regenerate the restored six-parameter ignored solver artifacts |
 | F-005 donor closure | `284c50163a6ac501efcce8d52c02d1cb6a2f294a` | Documentation-only frozen D-021 responsiveness boundary |
 | F-005 Phase-1 responsiveness | `71bde76e1be48113e06e029715480dccb8e5c88f` | Revert F-005 source/tests independently; no solver model change |
+| D-022 architecture closure | `aee00ae8e9b39a2cb1409968329aed776ae6ee43` | Documentation-only architecture boundary |
+| D-022 radar ACC early deceleration | `93340bf33c7e494123a0c2776aa8a35586d47505` | Revert D-022 source/tests independently; no solver model change |
 
 Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-022.
