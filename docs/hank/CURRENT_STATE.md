@@ -1,13 +1,13 @@
 # HANK current implementation state
 
-Updated: 2026-09-22. Scope: durable implementation and verification state through F-002, plus F-005 Phase-1 closure. This is not a release or vehicle-validation approval.
+Updated: 2026-09-22. Scope: durable implementation and verification state through F-005 Phase-1 responsiveness. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
 - Repository: `Hank102373/dp-sienna-0103`
 - Branch: `hank/implementation-v1`
-- Current implementation checkpoint: `d2eb41426aa3e299f37ae8ffdc73f1c563015a95`
-- Remote state at synchronization start: `origin/hank/implementation-v1` matched `d2eb41426aa3e299f37ae8ffdc73f1c563015a95`.
+- Current implementation checkpoint: `71bde76e1be48113e06e029715480dccb8e5c88f`
+- Remote state at synchronization start: `origin/hank/implementation-v1` matched `71bde76e1be48113e06e029715480dccb8e5c88f`.
 - A/main remains the platform authority at `1986516b325cbf8d173f6ebaea989ed45673c49f`.
 - `sienna-longitudinal-dev` remains research only under D-018.
 - WSL Ubuntu 24.04 provides the executable development environment at `/home/hank/src/dp-sienna-0103`.
@@ -252,22 +252,34 @@ The implementation checkpoint changed six files with 234 insertions and 22 delet
 
 The user target of an approximately 1–2 m physical stopped gap remains unmapped. Raw 1.0/1.5/2.0 inputs are deterministic coordinate-space test cases only and are not physical bumper-gap claims. Physical mapping requires C3X stationary-vehicle measurement and later validation.
 
-### F-005 — Low-speed responsiveness closure
+### F-005 — Low-speed responsiveness from TOP01003
 
 - `F005_CLOSURE_A_PASS`: current/B/C source, numerical, and ownership boundaries mapped without repository changes.
 - `F005_CLOSURE_B1_PASS`: temporary runtime weight oracle, native MPC comparisons, lead-gate transitions, ACC/blended check, and 30-frame planner/DASR trace completed without production changes.
-- `F005_CLOSURE = READY_F005`: D-021 accepts exact B/TOP01003 Phase-1 ACC responsiveness weights, processed two-lead gate, donor-style planner data flow, and B jerk factors. C/TOP096 remains comparison only. **No F-005 production implementation has occurred yet.**
+- `F005_CLOSURE = READY_F005`: D-021 accepts exact B/TOP01003 Phase-1 ACC responsiveness weights, processed two-lead gate, donor-style planner data flow, and B jerk factors. C/TOP096 remains comparison only.
+- Implementation checkpoint: `71bde76e1be48113e06e029715480dccb8e5c88f`
+- Message: `feat(longitudinal): port TOP01003 low-speed response`
+- Implementation result: `F005_IMPLEMENTATION_B_PASS`; Phase-1 responsiveness implementation is complete.
+- Primary donor: `CT921/openpilot`, branch `TOP01003`, commit `615799f95e978fbf643d1e762d605b4d5b06499f`.
 
-B1 measured stopped/no-lead Aggressive `a[1]` of `0.028686 -> 0.032822 m/s²` and lead pull-away `0.008913 -> 0.010540 m/s²`, with native status 0 and finite output. In the 30-frame low-speed no-lead trace, neither Current nor B experienced DASR clipping (`0/30`), and B versus a temporary DASR bypass had `0.0` maximum final-target difference. These observations do not validate C3X or vehicle response. D-021 preserves `COMFORT_BRAKE = 2.5`, DASR, blended weights, and existing feature ownership; it excludes B MIN profiles and C cross-feature tuning. Runtime cost weighting requires no solver regeneration.
+B1 measured stopped/no-lead Aggressive `a[1]` of `0.028686 -> 0.032822 m/s²` and lead pull-away `0.008913 -> 0.010540 m/s²`, with native status 0 and finite output. In the 30-frame low-speed no-lead trace, neither Current nor B experienced DASR clipping (`0/30`), and B versus a temporary DASR bypass had `0.0` maximum final-target difference. These observations do not validate C3X or vehicle response. D-021 preserves `COMFORT_BRAKE = 2.5`, DASR, blended weights, and existing feature ownership; runtime cost weighting requires no solver regeneration.
+
+The implemented jerk factors are Aggressive 0.45, Standard 1.0, and Relaxed 1.0. In ACC, the low-speed cost scale interpolates from 0.9 at 0 m/s to 1.0 at 10 m/s only when both processed stage-0 lead velocities are at least ego speed. Missing leads retain MPC synthetic-lead semantics. Blended weights are unchanged. The planner calls `process_lead`, passes processed stage-0 velocities to `set_weights()`, then calls `set_cur_state()` and `update()`. The same APM effective personality reaches `set_weights()` and `update()`.
+
+E-001 acceleration bounds at `p[0]/p[1]`, E-002 mode synchronization, PORT-01 Dynamic Follow at `p[4]`, PORT-02 stopped-equivalence pull-away, PORT-03 maximum positive acceleration profile, F-002 Stop Distance at `p[6]`, CFG-01 session configuration, and DASR remain under their existing owners. `PARAM_DIM = 7`, runtime `p` shape is `(N+1, 7)`, and `COMFORT_BRAKE = 2.5`. F-005 did not import B `MIN_ACCEL_PROFILES`, B `COMFORT_BRAKE = 1.75`, B fixed output slew, C's 0.05 -> 1.0 scale, C jerk factors, `braking_offset`, `smoother_braking`, blended tuning, or stop correction.
+
+Final verification: F-005 focused 36 passed; approved combined regression 532 passed; full longitudinal 4 pytest cases and 58 maneuver subtests passed. `SQP_RTI` status-3 count was 42, matching the previous baseline of 42. SCons passed in 41.8 seconds; Ruff had no new lint regression (`longitudinal_planner.py:49 PIE790` remains a known baseline exception); `git diff --check` passed. No tracked generated solver source changed.
+
+User goals: (A) faster pull-away responsiveness is implemented through PORT-02 and F-005 exact B cost tuning, but subjective sufficiency on C3X/vehicle is unvalidated; (B) more assertive acceleration is implemented within the approved Phase-1 architecture through PORT-03 maximum acceleration and F-005 low-speed response, with vehicle validation pending. (C) earlier deceleration and (D) stronger deceleration when required remain unresolved; accepted F-005 responsiveness tuning does not address either goal.
 
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
 - F-004 / D-009 Acceleration Personality and CFG-01 externalization are implemented; C3X and vehicle validation remain outstanding.
 - F-002 Stop Distance is implemented and deterministic/native/build verification passed; physical stopped-gap mapping, C3X, and vehicle validation remain outstanding.
-- F-005 donor/numerical closure is `READY_F005`; Phase-1 implementation and verification remain outstanding.
-- `F005_DECEL_STUDY` remains unresolved: earlier deceleration and stronger required deceleration need separate owner/numerical analysis after responsiveness implementation. It must not silently retune `COMFORT_BRAKE`, Dynamic Follow, pull-away, AccelProfile, Stop Distance, or DASR.
-- Future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
+- F-005 Phase-1 responsiveness is implemented and verified in software; C3X and vehicle response remain unvalidated.
+- `F005_DECEL_STUDY` remains unresolved: earlier deceleration and stronger required deceleration need separate source/control-ownership analysis. Do not assume `COMFORT_BRAKE` is the answer or silently retune Dynamic Follow, pull-away, AccelProfile, Stop Distance, or DASR.
+- Physical 1–2 m product mapping, future HANK three-mode mapping, profile UI, and HANK/TSS quick-selector UI remain unresolved.
 - C3X bench validation has not been completed.
 - Vehicle V0 through V3 validation has not been completed.
 - Full P0 SecOC/Toyota release acceptance has not been completed.
@@ -277,7 +289,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`F005_IMPLEMENTATION_A` — implement the D-021 frozen B/TOP01003 Phase-1 ACC responsiveness contract with focused tests. Preserve all D-021 ownership boundaries and verify before any checkpoint. No implementation occurred during closure.
+`F005_DECEL_STUDY_A` — read-only source/control-ownership study of earlier deceleration and stronger deceleration when required. Distinguish obstacle geometry, desired stopping/following distance, model trajectory, MPC acceleration constraints, jerk/change-cost tuning, planner output slew, and actuator authority. Do not assume `COMFORT_BRAKE` is the answer.
 
 ## Commit map and rollback
 
@@ -296,5 +308,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 | CFG-01 | `5951b7f9392cae5284c5e09effdd4bdcd120b171` | Revert CFG-01 checkpoint independently |
 | F-002 donor closure | `14a6d7049ce155b3f86706c79dab5c1fca28e0dc` | Documentation-only frozen donor/numerical boundary |
 | F-002 | `d2eb41426aa3e299f37ae8ffdc73f1c563015a95` | Revert F-002 source/tests independently, then regenerate the restored six-parameter ignored solver artifacts |
+| F-005 donor closure | `284c50163a6ac501efcce8d52c02d1cb6a2f294a` | Documentation-only frozen D-021 responsiveness boundary |
+| F-005 Phase-1 responsiveness | `71bde76e1be48113e06e029715480dccb8e5c88f` | Revert F-005 source/tests independently; no solver model change |
 
 Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-021.
