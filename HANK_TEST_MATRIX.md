@@ -476,3 +476,22 @@ D-023 and D-024 are **ACCEPTED_FOR_IMPLEMENTATION**, not tested or vehicle accep
 | V0 | Stationary target-Sienna check of controls, indicator/Requested/Active truthfulness, APM/profile presentation and TSS bypass. | Stationary safe-environment HANK↔TSS, driver takeover, no overlapping commands, owner/Panda/CarParams verification, fail-closed behavior and full reboot recovery. P0 Toyota/SecOC/TSK checks remain separately required. |
 
 UI-01 must show Active versus Requested/pending, advanced original reset, and independent Dynamic Follow. UI-02 must show HANK/TSS confirmed owner, disable unavailable/engaged/ALKA/ACC states, show pending cycle and explicit failure/reboot action, and label stored HANK profiles inactive under TSS. Onroad camera controls and settings use the same owner coordinator. No selector behavior can be accepted from UI-only tests: `selfdrived` engagement must be independently blocked until current-session owner verification succeeds. Passing U/S/R does not imply B/V0, P0/full release acceptance, Phase-1 completion or road approval.
+
+---
+
+## 17. D-025 following-distance regression contract after F-002 (2026-09-23)
+
+D-025 is **ACCEPTED_FOR_IMPLEMENTATION**. It corrects the stale regression-test contract only; it authorizes no production longitudinal or solver change.
+
+| Owner | Required implementation evidence |
+|---|---|
+| Analytic helper | Exact formula cases explicitly pass both `get_T_FOLLOW(personality)` and `get_STOP_DISTANCE(personality)` for Relaxed, Standard and Aggressive. |
+| F-002 solver parameter | Existing `test_stop_distance.py` remains authoritative for exact `p[6]`, dimension/order, effective personality, ACC/blended propagation, finite native outputs and solver status. Do not duplicate `p[6]` as an exact maneuver gap. |
+| Moving-speed maneuver | At 10 and 35 m/s, compare against the personality-complete analytic oracle and retain the existing e2e/non-e2e tolerances unchanged. |
+| Zero-speed maneuver | For all three personalities in e2e and non-e2e: valid maneuver, finite gap/speed/acceleration and relevant solver arrays, status 0, `0 <= final_speed < 0.01 m/s`, `abs(final_acceleration) < 1e-3 m/s²`, and `lead0` for the fixed leadOne fixture. |
+| Personality direction | Within each mode, Relaxed final simulation-coordinate separation is strictly greater than Standard and Aggressive. Do not require Standard/Aggressive ordering or a fixed minimum margin. |
+| Prohibited oracle | No zero-speed assertion of `final_gap ~= p[6]` or `final_gap ~= p[5] * p[6]`; no widening of the historical distance tolerance. |
+
+The zero-speed thresholds reuse existing Plant/maneuver semantics. The closure probe ran every e2e/personality pair three times: all 18 runs were valid with status 0 and `lead0`; each case repeated exactly. E2e ended at zero speed/acceleration. Non-e2e maximum final speed was `0.002925707 m/s`, and maximum absolute final acceleration was `3.741398e-05 m/s²`. These observations justify convergence checks but do not freeze exact gaps, bitwise repeatability or product margins.
+
+After implementation, rerun the corrected following-distance suite, the targeted HANK longitudinal suite, full longitudinal regression with SQP_RTI diagnostic comparison, Ruff/static checks, full SCons, protected-scope review and final clean-tree check required by `PHASE1_UI02_FINAL_VERIFY_B2`. Approximately 3.0 m and `0.75 * p[6]` remain diagnostics only. Physical bumper gap, the desired vehicle-level 1–2 m goal, C3X behavior and vehicle safety remain outside this unit-test contract.

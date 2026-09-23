@@ -292,6 +292,12 @@ Study G's simplified continuous 10/20 m/s stopped-lead replay reached stable nea
 
 D-024 freezes a single HANK/TSS coordinator around `dp_toyota_stock_lon` and the existing `OnroadCycleRequested` Offroad→Onroad path. It requires fresh disengaged/no-active-command state, a separate selfdrived engagement interlock, fresh CarParams plus Panda safety verification, and last-confirmed-owner Param rollback with `SWITCH_FAILED`/reboot-only recovery. A rollback write does not validate the failed runtime. Under TSS, the saved HANK profile is shown as inactive future HANK configuration. The existing DP direct Stock Long toggle must not bypass the coordinator. This is documentation/design closure only: no UI, config v2, coordinator or interlock production code has been implemented or tested.
 
+### Phase-1 B2 following-distance test-contract closure
+
+`PHASE1_B2_FOLLOWING_DISTANCE_BLOCKER_DIAGNOSED` classified the two non-e2e zero-speed failures as `STALE_TEST_CONTRACT_AFTER_F002`. D-025 is now `ACCEPTED_FOR_IMPLEMENTATION`. It separates exact analytic helper ownership, exact F-002 `p[6]` ownership, moving-speed approximate-following behavior, and zero-speed native convergence/personality-direction behavior. No production longitudinal defect or UI defect was identified.
+
+The closure repeatability probe ran six zero-speed cases three times each. All 18 runs were valid, selected `lead0`, returned solver status 0 and repeated exactly. D-025 does not freeze the observed gaps as product targets and does not equate software-coordinate distance with physical bumper gap. B2 final verification remains blocked until the test contract is implemented and all remaining B2 gates pass.
+
 ## Current blockers and limitations
 
 - F-003 / D-008 Lead Pull-away from C/TOP096 is implemented at the PORT-02 checkpoint; C3X and vehicle validation remain outstanding.
@@ -309,7 +315,7 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 
 ## NEXT
 
-`PHASE1_UI_SELECTOR_IMPLEMENTATION` — implement D-023 CFG v2/three-mode UI and D-024 guarded owner coordinator/interlock with U/S/R evidence before C3X bench and V0. D-022 committed-runtime Matrix I/J evidence is complete. Do not claim Phase 1 released, C3X validated, deployment approved, or main merge authorized.
+`PHASE1_B2_FOLLOWING_DISTANCE_TEST_CONTRACT_IMPLEMENTATION` — implement D-025 in tests only, then resume the blocked B2 targeted/full/build/static verification sequence. Do not change production longitudinal behavior, widen the old zero-speed tolerance, or claim B2, Phase 1, C3X, deployment, vehicle safety or main-merge acceptance.
 
 ## Commit map and rollback
 

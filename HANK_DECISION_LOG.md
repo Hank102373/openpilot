@@ -884,6 +884,50 @@ Read-only inventory confirmed ALKA lateral activity despite `selfdriveState.enab
 
 ---
 
+## D-025 — Following-distance regression contract after F-002
+
+**Status:** ACCEPTED_FOR_IMPLEMENTATION
+
+**Date:** 2026-09-23
+
+**Decision**
+
+The Phase-1 B2 blocker in `selfdrive/controls/tests/test_following_distance.py` is classified as `STALE_TEST_CONTRACT_AFTER_F002`, not as a production regression. F-002 correctly supplies personality stop distance through solver parameter `p[6]`, but the historical zero-speed maneuver assertion continued to treat the nominal analytic distance as the exact native simulation equilibrium. With Standard/Aggressive `p[6] = 4.0` and ACC `p[5] = 0.75`, the native soft cost/constraint settles near 3.0 simulation-coordinate metres; this does not make 3.0 m, or `p[5] * p[6]`, a product target or physical bumper gap.
+
+**Ownership split**
+
+1. Analytic helper tests own the exact `desired_follow_distance()` equation. They must explicitly pass both `get_T_FOLLOW(personality)` and `get_STOP_DISTANCE(personality)` for Relaxed, Standard and Aggressive; no Relaxed test may inherit the default Standard stop distance.
+2. `selfdrive/controls/tests/test_stop_distance.py` and the existing F-002 suite retain exclusive ownership of exact `p[6]` values (Relaxed 4.5, Standard 4.0, Aggressive 4.0), parameter dimension/order, effective-personality propagation, ACC/blended consistency, finite native output and solver status. `test_following_distance.py` must not duplicate `p[6]` as an exact final-gap assertion.
+3. Moving-speed maneuver cases at 10 and 35 m/s retain their existing approximate-following-distance contract and existing tolerances, but the oracle becomes explicitly personality-complete:
+
+```python
+desired_follow_distance(
+  v_lead,
+  v_lead,
+  get_T_FOLLOW(personality),
+  get_STOP_DISTANCE(personality),
+)
+```
+
+4. Zero-speed maneuver cases own stable, valid native convergence and personality direction, not equality to the nominal analytic distance. For both e2e and non-e2e, require a valid maneuver, finite observed gap/speed/acceleration and relevant solver arrays, `solution_status == 0`, final non-negative ego speed below `0.01 m/s`, absolute final ego acceleration below `1e-3 m/s²`, and `lead0` as the relevant source for the fixed leadOne fixture. Within each mode, Relaxed must finish with a strictly larger simulation-coordinate separation than Standard and Aggressive because Relaxed owns the larger `p[6]`; no Standard-versus-Aggressive ordering is required because both own `p[6] = 4.0` and other personality terms differ.
+
+The speed threshold reuses the maneuver Plant's existing `speed < 0.01` standstill definition. The acceleration threshold reuses the existing maneuver `1e-3 m/s²` small-acceleration scale. A three-repeat read-only probe produced identical results for all six cases: all 18 runs were valid, used `lead0`, and ended with solver status 0; e2e speed/acceleration were exactly zero, while non-e2e maximum final speed was `0.002925707 m/s` and maximum absolute final acceleration was `3.741398e-05 m/s²`. Exact repeat equality and the observed final gaps are evidence, not frozen output values or required margins.
+
+**e2e/non-e2e treatment**
+
+Use the same zero-speed convergence and directional contracts for e2e and non-e2e. Their different internal modes and `p[5]` values may produce different gaps, so do not require cross-mode gap equality. The passing historical e2e nominal-distance assertion is still conceptually replaced; passing did not make nominal distance an exact equilibrium contract.
+
+**Rejected fixes and boundaries**
+
+- Do not widen the historical distance tolerance to make zero-speed cases pass.
+- Do not require `final_gap == p[6]` or `final_gap == p[5] * p[6]`.
+- Do not freeze approximately 3.0 m as a product target, safety floor, physical stopped gap or new tuning value.
+- Do not change production longitudinal code, `COMFORT_BRAKE`, `LEAD_DANGER_FACTOR`, Stop Distance, PORT-01/02/03, F-002, F-005, D-022, solver code, generated solver, UI-01 or UI-02 under this decision.
+
+The intended physical stopped-gap goal remains a C3X/vehicle-level validation concern. Software-coordinate gaps are not physical bumper-gap claims. Implementation is limited to the regression-test contract, followed by the blocked B2 verification gates; it does not establish C3X validation, vehicle safety, Phase-1 completion, deployment approval or release acceptance.
+
+---
+
 ## Future decision-entry template
 
 ```text
