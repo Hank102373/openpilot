@@ -2,6 +2,10 @@ import pyray as rl
 from dataclasses import dataclass
 from openpilot.common.constants import CV
 from openpilot.selfdrive.ui.onroad.exp_button import ExpButton
+from openpilot.selfdrive.ui.hank_profile import HankProfileUIModel
+from openpilot.selfdrive.controls.lib.hank_config import ACTIVE, HankConfigV2, ReadState, base_personality, read_config
+from openpilot.system.ui.widgets.button import Button, ButtonStyle
+from openpilot.common.params import Params
 from openpilot.selfdrive.ui.ui_state import ui_state, UIStatus
 from openpilot.system.ui.lib.application import gui_app, FontWeight
 from openpilot.system.ui.lib.multilang import tr
@@ -73,6 +77,12 @@ class HudRenderer(Widget):
 
     self._exp_button: ExpButton = ExpButton(UI_CONFIG.button_size, UI_CONFIG.wheel_icon_size)
 
+    self._hank_profile = HankProfileUIModel(Params())
+    self._hank_error = None
+    self._hank_buttons = [
+      Button(label, lambda mode=mode: self._request_hank_profile(mode), font_size=34, button_style=ButtonStyle.NORMAL)
+      for label, mode in (("緊湊", "compact"), ("一般", "normal"), ("舒適", "comfortable"))
+    ]
     self._torque_bar = TorqueBar(scale=4.0)
 
   def _update_state(self) -> None:
@@ -124,11 +134,47 @@ class HudRenderer(Widget):
     button_y = rect.y + UI_CONFIG.border_size
     self._exp_button.render(rl.Rectangle(button_x, button_y, UI_CONFIG.button_size, UI_CONFIG.button_size))
 
+    self._draw_hank_profile(rect)
+
     if ui_state.sm['controlsState'].lateralControlState.which() != 'angleState':
       self._torque_bar.render(rect)
 
   def user_interacting(self) -> bool:
-    return self._exp_button.is_pressed
+    return self._exp_button.is_pressed or any(button.is_pressed for button in self._hank_buttons)
+
+  def _request_hank_profile(self, profile: str) -> None:
+    try:
+      self._hank_profile.select_mode(profile)
+      self._hank_error = None
+    except (ValueError, OSError, RuntimeError) as error:
+      self._hank_error = str(error)
+
+  def _draw_hank_profile(self, rect: rl.Rectangle) -> None:
+    has_long = ui_state.CP is not None and ui_state.CP.openpilotLongitudinalControl
+    state = self._hank_profile.state(has_long)
+    x = rect.x + rect.width - 790
+    y = rect.y + 270
+    panel = rl.Rectangle(x, y, 760, 225)
+    rl.draw_rectangle_rounded(panel, 0.12, 8, COLORS.BLACK_TRANSLUCENT)
+    rl.draw_rectangle_rounded_lines_ex(panel, 0.12, 8, 2, COLORS.BORDER_TRANSLUCENT)
+    owner = "HANK" if has_long else "TSS owns longitudinal"
+    active = state.active_label if has_long else f"{state.active_label} (stored HANK)"
+    heading = f"{owner}  Active: {active}  Requested: {state.requested_label}"
+    rl.draw_text_ex(self._font_medium, heading, rl.Vector2(x + 18, y + 12), 33, 0, COLORS.WHITE)
+    active_config = read_config(self._hank_profile.params, ACTIVE)
+    apm_override = (has_long and active_config.state == ReadState.VALID
+                    and isinstance(active_config.value, HankConfigV2)
+                    and ui_state.sm["selfdriveState"].personality != base_personality(active_config.value))
+    detail = (self._hank_error or state.error or
+              ("Pending: next onroad session" if state.pending else "Current session profile"))
+    if apm_override:
+      detail += " | APM effective override"
+    rl.draw_text_ex(self._font_medium, detail, rl.Vector2(x + 18, y + 63), 29, 0,
+                    COLORS.ENGAGED if state.pending else COLORS.WHITE)
+    button_y = y + 118
+    for index, button in enumerate(self._hank_buttons):
+      button.set_enabled(has_long and state.hank_controls_longitudinal)
+      button.render(rl.Rectangle(x + 18 + index * 246, button_y, 230, 85))
 
   def _draw_set_speed(self, rect: rl.Rectangle) -> None:
     """Draw the MAX speed indicator box."""

@@ -19,6 +19,7 @@ LATCH = "HankConfigSessionStarted"
 LEGACY = "HankDynamicFollow"
 LEGACY_ACTIVE = "HankDynamicFollowActive"
 STOCK = {"version": 1, "dynamic_follow": False, "accel_profile": 3}
+ORIGINAL = {"version": 2, "dynamic_follow": False, "hank_profile": "original", "accel_profile": 3}
 ECO = {"version": 1, "dynamic_follow": True, "accel_profile": 2}
 
 
@@ -134,11 +135,11 @@ def test_requested_change_restart_then_lifecycle(params, startup, flag):
   assert params.get(ACTIVE) == STOCK
 
 
-def test_corrupt_requested_stock_recovery(params, startup):
+def test_corrupt_requested_original_recovery(params, startup):
   Path(params.get_param_path(REQUESTED)).write_bytes(b"{")
   planner, _ = startup()
   assert selections(planner) == (False, AccelProfile.stock)
-  assert params.get(ACTIVE) == STOCK
+  assert params.get(ACTIVE) == ORIGINAL
   assert Path(params.get_param_path(REQUESTED)).read_bytes() == b"{"
 
 

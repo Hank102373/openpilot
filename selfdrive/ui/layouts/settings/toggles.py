@@ -1,16 +1,15 @@
-from cereal import log
 from openpilot.common.params import Params, UnknownKeyName
 from openpilot.system.ui.widgets import Widget
-from openpilot.system.ui.widgets.list_view import multiple_button_item, toggle_item
+from openpilot.system.ui.widgets.list_view import button_item, multiple_button_item, text_item, toggle_item
 from openpilot.system.ui.widgets.scroller_tici import Scroller
 from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult
 from openpilot.selfdrive.ui.ui_state import ui_state
+from openpilot.selfdrive.ui.hank_profile import HankProfileUIModel
+from openpilot.selfdrive.controls.lib.hank_config import ReadState, REQUESTED, read_config
 import os
-
-PERSONALITY_TO_INT = log.LongitudinalPersonality.schema.enumerants
 
 LITE = os.getenv("LITE") is not None
 
@@ -21,11 +20,6 @@ DESCRIPTIONS = {
     "Your attention is required at all times to use this feature."
   ),
   "DisengageOnAccelerator": tr_noop("When enabled, pressing the accelerator pedal will disengage openpilot."),
-  "LongitudinalPersonality": tr_noop(
-    "Standard is recommended. In aggressive mode, openpilot will follow lead cars closer and be more aggressive with the gas and brake. " +
-    "In relaxed mode openpilot will stay further away from lead cars. On supported cars, you can cycle through these personalities with " +
-    "your steering wheel distance button."
-  ),
   "IsLdwEnabled": tr_noop(
     "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line " +
     "without a turn signal activated while driving over 31 mph (50 km/h)."
@@ -109,14 +103,34 @@ class TogglesLayout(Widget):
       ),
     }
 
-    self._long_personality_setting = multiple_button_item(
-      lambda: tr("Driving Personality"),
-      lambda: tr(DESCRIPTIONS["LongitudinalPersonality"]),
-      buttons=[lambda: tr("Aggressive"), lambda: tr("Standard"), lambda: tr("Relaxed")],
+    self._hank_profile = HankProfileUIModel(self._params)
+    self._profile_error = None
+    self._profile_modes = ("compact", "normal", "comfortable")
+    self._profile_buttons = multiple_button_item(
+      lambda: tr("HANK profile"),
+      lambda: tr("Requested profile applies at the next onroad session."),
+      buttons=["緊湊", "一般", "舒適"],
       button_width=255,
-      callback=self._set_longitudinal_personality,
-      selected_index=self._params.get("LongitudinalPersonality", return_default=True),
-      icon="speed_limit.png"
+      callback=self._set_hank_profile,
+      selected_index=-1,
+      icon="speed_limit.png",
+    )
+    self._profile_state = text_item(
+      lambda: tr("HANK profile state"),
+      lambda: self._profile_status(),
+      description=lambda: self._profile_error or tr("Active and Requested are separate session values."),
+    )
+    self._dynamic_follow = toggle_item(
+      lambda: tr("Dynamic Follow"),
+      lambda: tr("Independent of HANK profile; changes apply next onroad session."),
+      False,
+      callback=self._set_dynamic_follow,
+    )
+    self._restore_original = button_item(
+      lambda: tr("Advanced: restore original/default"),
+      lambda: tr("Restore"),
+      description=lambda: tr("Next session: Standard personality, stock acceleration, Dynamic Follow off."),
+      callback=self._restore_hank_original,
     )
 
     self._toggles = {}
@@ -153,25 +167,63 @@ class TogglesLayout(Widget):
 
       self._toggles[param] = toggle
 
-      # insert longitudinal personality after NDOG toggle
       if param == "DisengageOnAccelerator":
-        self._toggles["LongitudinalPersonality"] = self._long_personality_setting
+        self._toggles["HankProfile"] = self._profile_buttons
+        self._toggles["HankProfileState"] = self._profile_state
+        self._toggles["HankDynamicFollow"] = self._dynamic_follow
+        self._toggles["HankRestoreOriginal"] = self._restore_original
 
     self._update_experimental_mode_icon()
     self._scroller = Scroller(list(self._toggles.values()), line_separator=True, spacing=0)
 
     ui_state.add_engaged_transition_callback(self._update_toggles)
 
-  def _update_state(self):
-    if ui_state.sm.updated["selfdriveState"]:
-      personality = PERSONALITY_TO_INT[ui_state.sm["selfdriveState"].personality]
-      if personality != ui_state.personality and ui_state.started:
-        self._long_personality_setting.action_item.set_selected_button(personality)
-      ui_state.personality = personality
+  def _profile_status(self):
+    state = self._hank_profile.state(ui_state.has_longitudinal_control)
+    owner = tr("HANK owns longitudinal") if state.owner_label == "HANK" else tr("TSS owns longitudinal; HANK stored for future use")
+    pending = tr("Pending: next onroad session") if state.pending else tr("No pending profile change")
+    return f"{owner} | Active: {state.active_label} | Requested: {state.requested_label} | {pending}"
+
+  def _refresh_profile(self):
+    state = self._hank_profile.state(ui_state.has_longitudinal_control)
+    requested = read_config(self._params, REQUESTED)
+    index = (self._profile_modes.index(requested.value.hank_profile)
+             if requested.state == ReadState.VALID and hasattr(requested.value, "hank_profile")
+             and requested.value.hank_profile in self._profile_modes else -1)
+    self._profile_buttons.action_item.selected_button = index
+    if state.requested_dynamic_follow is not None:
+      self._dynamic_follow.action_item.set_state(state.requested_dynamic_follow)
+    if state.error:
+      self._profile_error = state.error
+
+  def _set_hank_profile(self, button_index: int):
+    try:
+      self._hank_profile.select_mode(self._profile_modes[button_index])
+      self._profile_error = None
+    except (ValueError, OSError, RuntimeError) as error:
+      self._profile_error = str(error)
+    self._refresh_profile()
+
+  def _set_dynamic_follow(self, enabled: bool):
+    try:
+      self._hank_profile.set_dynamic_follow(enabled)
+      self._profile_error = None
+    except (ValueError, OSError, RuntimeError) as error:
+      self._profile_error = str(error)
+    self._refresh_profile()
+
+  def _restore_hank_original(self):
+    try:
+      self._hank_profile.restore_original()
+      self._profile_error = None
+    except (ValueError, OSError, RuntimeError) as error:
+      self._profile_error = str(error)
+    self._refresh_profile()
 
   def show_event(self):
     self._scroller.show_event()
     self._update_toggles()
+    self._refresh_profile()
 
   def _update_toggles(self):
     ui_state.update_params()
@@ -192,12 +244,12 @@ class TogglesLayout(Widget):
       if ui_state.has_longitudinal_control:
         self._toggles["ExperimentalMode"].action_item.set_enabled(True)
         self._toggles["ExperimentalMode"].set_description(e2e_description)
-        self._long_personality_setting.action_item.set_enabled(True)
+
       else:
         # no long for now
         self._toggles["ExperimentalMode"].action_item.set_enabled(False)
         self._toggles["ExperimentalMode"].action_item.set_state(False)
-        self._long_personality_setting.action_item.set_enabled(False)
+
         self._params.remove("ExperimentalMode")
 
         unavailable = tr("Experimental mode is currently unavailable on this car since the car's stock ACC is used for longitudinal control.")
@@ -261,6 +313,3 @@ class TogglesLayout(Widget):
     self._params.put_bool(param, state)
     if self._toggle_defs[param][3]:
       self._params.put_bool("OnroadCycleRequested", True)
-
-  def _set_longitudinal_personality(self, button_index: int):
-    self._params.put("LongitudinalPersonality", button_index)

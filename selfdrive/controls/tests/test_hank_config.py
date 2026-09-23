@@ -255,7 +255,9 @@ def test_corrupt_requested_recovers_without_overwrite(cfg, params, payload):
   params.native.put_bool(LEGACY, True)
   result = cfg.initialize_session(params)
   assert result.reason.startswith("RECOVERED_CORRUPT_REQUESTED")
-  assert json.loads(read(params, ACTIVE)) == STOCK
+  assert json.loads(read(params, ACTIVE)) == {
+    "version": 2, "dynamic_follow": False, "hank_profile": "original", "accel_profile": 3,
+  }
   assert read(params, REQUESTED) == payload
   assert [key for key, _ in params.writes] == [LATCH, ACTIVE]
 

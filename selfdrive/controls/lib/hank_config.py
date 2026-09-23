@@ -8,6 +8,8 @@ from enum import Enum
 import json
 from pathlib import Path
 
+from cereal import log
+
 
 REQUESTED = "HankConfigRequested"
 ACTIVE = "HankConfigActive"
@@ -31,19 +33,54 @@ class HankConfig:
   accel_profile: int = 3
 
 
+@dataclass(frozen=True)
+class HankConfigV2:
+  version: int = 2
+  dynamic_follow: bool = False
+  hank_profile: str = "original"
+  accel_profile: int = 3
+
+
+Config = HankConfig | HankConfigV2
 STOCK_CONFIG = HankConfig()
+ORIGINAL_CONFIG = HankConfigV2()
+PROFILE_ACCEL = {"compact": 0, "normal": 1, "comfortable": 2, "original": 3}
+PROFILE_PERSONALITY = {
+  "compact": log.LongitudinalPersonality.aggressive,
+  "normal": log.LongitudinalPersonality.standard,
+  "comfortable": log.LongitudinalPersonality.relaxed,
+  "original": log.LongitudinalPersonality.standard,
+}
+NEXT_PROFILE = {"compact": "normal", "normal": "comfortable", "comfortable": "compact"}
 
 
 def _validate(value):
-  if type(value) is not dict or set(value) != {"version", "dynamic_follow", "accel_profile"}:
-    raise ConfigValidationError("expected exactly version, dynamic_follow, accel_profile")
-  if type(value["version"]) is not int or value["version"] != 1:
-    raise ConfigValidationError("version must be integer 1")
+  if type(value) is not dict or type(value.get("version")) is not int:
+    raise ConfigValidationError("expected a versioned config object")
+  if value["version"] == 1:
+    if set(value) != {"version", "dynamic_follow", "accel_profile"}:
+      raise ConfigValidationError("expected exactly version, dynamic_follow, accel_profile")
+    config_type = HankConfig
+  elif value["version"] == 2:
+    if set(value) != {"version", "dynamic_follow", "hank_profile", "accel_profile"}:
+      raise ConfigValidationError("expected exactly version, dynamic_follow, hank_profile, accel_profile")
+    if type(value["hank_profile"]) is not str or value["hank_profile"] not in PROFILE_ACCEL:
+      raise ConfigValidationError("invalid hank_profile")
+    if type(value["accel_profile"]) is not int or value["accel_profile"] != PROFILE_ACCEL[value["hank_profile"]]:
+      raise ConfigValidationError("accel_profile does not match hank_profile")
+    config_type = HankConfigV2
+  else:
+    raise ConfigValidationError("unsupported version")
   if type(value["dynamic_follow"]) is not bool:
     raise ConfigValidationError("dynamic_follow must be boolean")
   if type(value["accel_profile"]) is not int or value["accel_profile"] not in (0, 1, 2, 3):
     raise ConfigValidationError("accel_profile must be integer 0, 1, 2, or 3")
-  return HankConfig(**value)
+  return config_type(**value)
+
+
+def base_personality(config: Config):
+  """Return None for v1: that schema never recorded a personality."""
+  return PROFILE_PERSONALITY[config.hank_profile] if isinstance(config, HankConfigV2) else None
 
 
 def _unique_object(pairs):
@@ -59,7 +96,7 @@ def _reject_constant(value):
   raise ConfigValidationError(f"non-standard JSON numeric value: {value}")
 
 
-def parse_config(raw: bytes | str) -> HankConfig:
+def parse_config(raw: bytes | str) -> Config:
   try:
     text = raw.decode("utf-8") if isinstance(raw, bytes) else raw
     value = json.loads(text, object_pairs_hook=_unique_object, parse_constant=_reject_constant)
@@ -68,8 +105,8 @@ def parse_config(raw: bytes | str) -> HankConfig:
     raise ConfigValidationError(str(error)) from error
 
 
-def serialize_config(config: HankConfig) -> str:
-  if not isinstance(config, HankConfig):
+def serialize_config(config: Config) -> str:
+  if not isinstance(config, (HankConfig, HankConfigV2)):
     raise ConfigValidationError("expected a complete HankConfig")
   value = asdict(config)
   _validate(value)
@@ -86,7 +123,7 @@ class ReadState(Enum):
 @dataclass(frozen=True)
 class ReadResult:
   state: ReadState
-  value: bytes | HankConfig | None = None
+  value: bytes | Config | None = None
   reason: str = ""
 
 
@@ -138,7 +175,7 @@ def _put(params, key, value):
     raise SessionError(f"IO_ERROR writing {key}: {error}") from error
 
 
-def _save_config(params, key: str, config: HankConfig) -> HankConfig:
+def _save_config(params, key: str, config: Config) -> Config:
   # Validate before any write. Params.put performs the single atomic JSON write.
   value = json.loads(serialize_config(config))
   _put(params, key, value)
@@ -149,30 +186,71 @@ def _save_config(params, key: str, config: HankConfig) -> HankConfig:
   return result.value
 
 
-def save_requested(params, config: HankConfig) -> HankConfig:
+def save_requested(params, config: Config) -> Config:
   """Save a complete candidate; never mutate Active or the session latch."""
   return _save_config(params, REQUESTED, config)
 
 
 def restore_stock(params) -> HankConfig:
+  """Preserve the CFG-01 v1 stock API for existing callers."""
   return save_requested(params, STOCK_CONFIG)
+
+
+def restore_original(params) -> HankConfigV2:
+  """Advanced v2 reset; applies on the next legitimate session."""
+  return save_requested(params, ORIGINAL_CONFIG)
+
+
+def _current_requested(params) -> Config:
+  result = read_config(params, REQUESTED)
+  _require_no_io(result, REQUESTED)
+  if result.state == ReadState.MISSING:
+    return STOCK_CONFIG
+  if result.state != ReadState.VALID:
+    raise ConfigValidationError(f"invalid Requested: {result.reason}")
+  return result.value
+
+
+def save_profile(params, profile: str) -> HankConfigV2:
+  if type(profile) is not str or profile not in NEXT_PROFILE:
+    raise ConfigValidationError("expected one of the three HANK profiles")
+  previous = _current_requested(params)
+  return save_requested(params, HankConfigV2(dynamic_follow=previous.dynamic_follow,
+                                             hank_profile=profile, accel_profile=PROFILE_ACCEL[profile]))
+
+
+def cycle_requested_profile(params) -> HankConfigV2:
+  previous = _current_requested(params)
+  current = previous.hank_profile if isinstance(previous, HankConfigV2) else "original"
+  profile = NEXT_PROFILE.get(current, "compact")
+  return save_requested(params, HankConfigV2(dynamic_follow=previous.dynamic_follow,
+                                             hank_profile=profile, accel_profile=PROFILE_ACCEL[profile]))
+
+
+def set_requested_dynamic_follow(params, enabled: bool) -> Config:
+  if type(enabled) is not bool:
+    raise ConfigValidationError("dynamic_follow must be boolean")
+  previous = _current_requested(params)
+  value = asdict(previous)
+  value["dynamic_follow"] = enabled
+  return save_requested(params, _validate(value))
 
 
 @dataclass(frozen=True)
 class SessionSnapshot:
   action: str
-  config: HankConfig
+  config: Config
   reason: str
 
 
-def _requested_for_new_session(params) -> tuple[HankConfig, str]:
+def _requested_for_new_session(params) -> tuple[Config, str]:
   requested = read_config(params, REQUESTED)
   _require_no_io(requested, REQUESTED)
   if requested.state == ReadState.VALID:
     return requested.value, "REQUESTED"
   if requested.state == ReadState.CORRUPT:
     # Preserve the corrupt original for diagnosis; this recovery is explicit.
-    return STOCK_CONFIG, f"RECOVERED_CORRUPT_REQUESTED: {requested.reason}"
+    return ORIGINAL_CONFIG, f"RECOVERED_CORRUPT_REQUESTED: {requested.reason}"
 
   legacy = read_raw(params, LEGACY_REQUESTED)
   _require_no_io(legacy, LEGACY_REQUESTED)

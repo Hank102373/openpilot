@@ -10,6 +10,8 @@ from msgq.visionipc import VisionIpcClient, VisionStreamType
 
 
 from openpilot.common.params import Params
+from openpilot.selfdrive.controls.lib.hank_config import (HankConfigV2, ReadState, base_personality, cycle_requested_profile,
+                                                        read_config, read_latch, ACTIVE, REQUESTED)
 from openpilot.common.realtime import config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from openpilot.common.swaglog import cloudlog
 from openpilot.common.gps import get_gps_location_service
@@ -41,6 +43,27 @@ ButtonType = car.CarState.ButtonEvent.Type
 SafetyModel = car.CarParams.SafetyModel
 
 IGNORED_SAFETY_MODES = (SafetyModel.silent, SafetyModel.noOutput)
+
+
+def handle_hank_gap_request(params, CP, button_events):
+  """Only Requested changes; the current Active personality stays immutable."""
+  if not CP.openpilotLongitudinalControl:
+    return None
+  if any(not event.pressed and event.type == ButtonType.gapAdjustCruise for event in button_events):
+    return cycle_requested_profile(params).hank_profile
+  return None
+
+
+def read_hank_session_personality(params):
+  """Return (base personality, ready); v1 retains its legacy personality owner."""
+  active, latch = read_config(params, ACTIVE), read_latch(params)
+  if active.state == ReadState.VALID and latch.state == ReadState.VALID:
+    return base_personality(active.value), True
+  if active.state == ReadState.MISSING and latch.state == ReadState.MISSING:
+    requested = read_config(params, REQUESTED)
+    if requested.state == ReadState.MISSING or (requested.state == ReadState.VALID and not isinstance(requested.value, HankConfigV2)):
+      return None, True  # CFG-01 v1 may still be initializing; retain its existing path.
+  return None, False
 
 
 class SelfdriveD:
@@ -122,6 +145,9 @@ class SelfdriveD:
     self.not_running_prev = None
     self.experimental_mode = False
     self.personality = self.params.get("LongitudinalPersonality", return_default=True)
+    self.hank_base_personality, self.hank_config_ready = read_hank_session_personality(self.params)
+    if self.hank_base_personality is not None:
+      self.personality = self.hank_base_personality
     self.recalibrating_seen = False
     self.state_machine = StateMachine(self.alka)
     self.rk = Ratekeeper(100, print_delay_threshold=None)
@@ -168,6 +194,9 @@ class SelfdriveD:
     if not self.initialized:
       self.events.add(EventName.selfdriveInitializing)
       return
+
+    if self.CP.openpilotLongitudinalControl and not self.hank_config_ready:
+      self.events.add(EventName.selfdriveInitializing)
 
     # Check for user bookmark press (bookmark button or end of LKAS button feedback)
     if self.sm.updated['userBookmark']:
@@ -403,12 +432,11 @@ class SelfdriveD:
       if self.sm['modelV2'].frameDropPerc > 20:
         self.events.add(EventName.modeldLagging)
 
-    # Decrement personality on distance button press
-    if self.CP.openpilotLongitudinalControl:
-      if any(not be.pressed and be.type == ButtonType.gapAdjustCruise for be in CS.buttonEvents):
-        self.personality = (self.personality - 1) % 3
-        self.params.put_nonblocking('LongitudinalPersonality', self.personality)
-        self.events.add(EventName.personalityChanged)
+    # The gap button saves the next-session HANK profile, never live personality.
+    try:
+      handle_hank_gap_request(self.params, self.CP, CS.buttonEvents)
+    except (ValueError, OSError, RuntimeError) as error:
+      cloudlog.error(f"HANK Requested profile save failed: {error}")
 
   def data_sample(self):
     _car_state = messaging.recv_one(self.car_state_sock)
@@ -517,7 +545,10 @@ class SelfdriveD:
       self.is_ldw_enabled = self.params.get_bool("IsLdwEnabled")
       self.disengage_on_accelerator = self.params.get_bool("DisengageOnAccelerator")
       self.experimental_mode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
-      self.personality = self.params.get("LongitudinalPersonality", return_default=True)
+      if self.CP.openpilotLongitudinalControl:
+        self.hank_base_personality, self.hank_config_ready = read_hank_session_personality(self.params)
+        self.personality = (self.hank_base_personality if self.hank_base_personality is not None
+                            else self.params.get("LongitudinalPersonality", return_default=True))
       time.sleep(0.1)
 
   def run(self):

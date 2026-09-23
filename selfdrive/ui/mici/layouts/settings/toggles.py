@@ -1,15 +1,12 @@
 import pyray as rl
 from collections.abc import Callable
-from cereal import log
 
 from openpilot.system.ui.widgets.scroller import Scroller
-from openpilot.selfdrive.ui.mici.widgets.button import BigParamControl, BigMultiParamToggle
+from openpilot.selfdrive.ui.mici.widgets.button import BigParamControl
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.widgets import NavWidget
 from openpilot.selfdrive.ui.layouts.settings.common import restart_needed_callback
 from openpilot.selfdrive.ui.ui_state import ui_state
-
-PERSONALITY_TO_INT = log.LongitudinalPersonality.schema.enumerants
 
 
 class TogglesLayoutMici(NavWidget):
@@ -17,7 +14,6 @@ class TogglesLayoutMici(NavWidget):
     super().__init__()
     self.set_back_callback(back_callback)
 
-    self._personality_toggle = BigMultiParamToggle("driving personality", "LongitudinalPersonality", ["aggressive", "standard", "relaxed"])
     self._experimental_btn = BigParamControl("experimental mode", "ExperimentalMode")
     is_metric_toggle = BigParamControl("use metric units", "IsMetric")
     ldw_toggle = BigParamControl("lane departure warnings", "IsLdwEnabled")
@@ -27,7 +23,6 @@ class TogglesLayoutMici(NavWidget):
     enable_openpilot = BigParamControl("enable openpilot", "OpenpilotEnabledToggle", toggle_callback=restart_needed_callback)
 
     self._scroller = Scroller([
-      self._personality_toggle,
       self._experimental_btn,
       is_metric_toggle,
       ldw_toggle,
@@ -58,15 +53,6 @@ class TogglesLayoutMici(NavWidget):
 
     ui_state.add_engaged_transition_callback(self._update_toggles)
 
-  def _update_state(self):
-    super()._update_state()
-
-    if ui_state.sm.updated["selfdriveState"]:
-      personality = PERSONALITY_TO_INT[ui_state.sm["selfdriveState"].personality]
-      if personality != ui_state.personality and ui_state.started:
-        self._personality_toggle.set_value(self._personality_toggle._options[personality])
-      ui_state.personality = personality
-
   def show_event(self):
     super().show_event()
     self._scroller.show_event()
@@ -79,12 +65,10 @@ class TogglesLayoutMici(NavWidget):
     if ui_state.CP is not None:
       if ui_state.has_longitudinal_control:
         self._experimental_btn.set_visible(True)
-        self._personality_toggle.set_visible(True)
       else:
         # no long for now
         self._experimental_btn.set_visible(False)
         self._experimental_btn.set_checked(False)
-        self._personality_toggle.set_visible(False)
         ui_state.params.remove("ExperimentalMode")
 
     # Refresh toggles from params to mirror external changes
