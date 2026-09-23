@@ -7,7 +7,9 @@ from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult
 from openpilot.selfdrive.ui.ui_state import ui_state
+from openpilot.selfdrive.ui.hank_owner import HankOwnerUIModel
 from openpilot.selfdrive.ui.hank_profile import HankProfileUIModel
+from openpilot.selfdrive.ui.reboot import show_reboot_confirmation
 from openpilot.selfdrive.controls.lib.hank_config import ReadState, REQUESTED, read_config
 import os
 
@@ -104,7 +106,19 @@ class TogglesLayout(Widget):
     }
 
     self._hank_profile = HankProfileUIModel(self._params)
+    self._hank_owner = HankOwnerUIModel(self._params)
     self._profile_error = None
+    self._owner_selector = button_item(
+      lambda: tr("Longitudinal owner"),
+      lambda: self._owner_action_label(),
+      description=lambda: self._owner_description(),
+      callback=self._owner_action,
+    )
+    self._owner_state = text_item(
+      lambda: tr("Owner switch state"),
+      lambda: self._owner_status(),
+      description=lambda: self._owner_description(),
+    )
     self._profile_modes = ("compact", "normal", "comfortable")
     self._profile_buttons = multiple_button_item(
       lambda: tr("HANK profile"),
@@ -168,6 +182,8 @@ class TogglesLayout(Widget):
       self._toggles[param] = toggle
 
       if param == "DisengageOnAccelerator":
+        self._toggles["HankOwner"] = self._owner_selector
+        self._toggles["HankOwnerState"] = self._owner_state
         self._toggles["HankProfile"] = self._profile_buttons
         self._toggles["HankProfileState"] = self._profile_state
         self._toggles["HankDynamicFollow"] = self._dynamic_follow
@@ -178,14 +194,61 @@ class TogglesLayout(Widget):
 
     ui_state.add_engaged_transition_callback(self._update_toggles)
 
+  def _owner_view(self):
+    return self._hank_owner.state(ui_state.CP)
+
+  def _owner_action_label(self):
+    view = self._owner_view()
+    return tr("Reboot") if view.reboot_available else tr(view.action_label or "Unavailable")
+
+  def _owner_status(self):
+    view = self._owner_view()
+    return f"{view.status} | {view.detail}" if view.visible else tr("Owner selector unavailable")
+
+  def _owner_description(self):
+    view = self._owner_view()
+    return view.detail or tr("Verified HANK/TSS owner switching")
+
+  def _owner_action(self):
+    view = self._owner_view()
+    if view.reboot_available:
+      show_reboot_confirmation(self._params)
+      return
+    if not view.action_enabled or view.action_target is None:
+      return
+    target = view.action_target
+
+    def confirmed(result):
+      if result == DialogResult.CONFIRM:
+        self._hank_owner.settings_request(target, ui_state.CP)
+        self._refresh_owner()
+
+    dialog = ConfirmDialog(self._hank_owner.confirmation_text(target), tr(f"Switch to {target}"))
+    gui_app.set_modal_overlay(dialog, callback=confirmed)
+
+  def _refresh_owner(self):
+    view = self._owner_view()
+    self._owner_selector.set_visible(view.visible)
+    self._owner_state.set_visible(view.visible)
+    self._owner_selector.action_item.set_enabled(view.action_enabled or view.reboot_available)
+
   def _profile_status(self):
-    state = self._hank_profile.state(ui_state.has_longitudinal_control)
-    owner = tr("HANK owns longitudinal") if state.owner_label == "HANK" else tr("TSS owns longitudinal; HANK stored for future use")
+    owner_view = self._owner_view()
+    hank_active = owner_view.state == "CURRENT_HANK" if owner_view.visible else ui_state.has_longitudinal_control
+    state = self._hank_profile.state(hank_active)
+    if owner_view.state == "CURRENT_HANK":
+      owner = tr("HANK owns longitudinal")
+    elif owner_view.state == "CURRENT_TSS":
+      owner = tr("TSS owns longitudinal; HANK stored for future use")
+    else:
+      owner = tr("Longitudinal owner unverified; HANK profile is not active")
     pending = tr("Pending: next onroad session") if state.pending else tr("No pending profile change")
     return f"{owner} | Active: {state.active_label} | Requested: {state.requested_label} | {pending}"
 
   def _refresh_profile(self):
-    state = self._hank_profile.state(ui_state.has_longitudinal_control)
+    owner_view = self._owner_view()
+    hank_active = owner_view.state == "CURRENT_HANK" if owner_view.visible else ui_state.has_longitudinal_control
+    state = self._hank_profile.state(hank_active)
     requested = read_config(self._params, REQUESTED)
     index = (self._profile_modes.index(requested.value.hank_profile)
              if requested.state == ReadState.VALID and hasattr(requested.value, "hank_profile")
@@ -195,6 +258,7 @@ class TogglesLayout(Widget):
       self._dynamic_follow.action_item.set_state(state.requested_dynamic_follow)
     if state.error:
       self._profile_error = state.error
+    self._refresh_owner()
 
   def _set_hank_profile(self, button_index: int):
     try:

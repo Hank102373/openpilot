@@ -73,3 +73,15 @@ def test_service_requires_post_clear_carparams(service):
   server.session_cleared(int(10e9))
   assert server.coordinator.fault
   assert params.get(ho.GATE) is False
+
+
+def test_malformed_request_has_no_param_fallback(service):
+  params, _, server = service
+  before = {key: params.get(key) for key in (ho.OWNER, ho.STATE, ho.GATE, ho.CYCLE)}
+  with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as client:
+    client.bind(bytes([0]) + (str(params.get_param_path()) + "-malformed").encode()[-100:])
+    client.settimeout(1)
+    client.sendto(b'{"wrong":"HANK"}', socket_address(params))
+    server.poll()
+    assert json.loads(client.recv(2048))["result"] == "BLOCKED_INVALID_REQUEST"
+  assert {key: params.get(key) for key in before} == before

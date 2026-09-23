@@ -2,13 +2,17 @@ import pyray as rl
 from dataclasses import dataclass
 from openpilot.common.constants import CV
 from openpilot.selfdrive.ui.onroad.exp_button import ExpButton
+from openpilot.selfdrive.ui.hank_owner import HankOwnerUIModel
 from openpilot.selfdrive.ui.hank_profile import HankProfileUIModel
+from openpilot.selfdrive.ui.reboot import show_reboot_confirmation
 from openpilot.selfdrive.controls.lib.hank_config import ACTIVE, HankConfigV2, ReadState, base_personality, read_config
 from openpilot.system.ui.widgets.button import Button, ButtonStyle
 from openpilot.common.params import Params
 from openpilot.selfdrive.ui.ui_state import ui_state, UIStatus
 from openpilot.system.ui.lib.application import gui_app, FontWeight
 from openpilot.system.ui.lib.multilang import tr
+from openpilot.system.ui.widgets import DialogResult
+from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.widgets import Widget
 from openpilot.selfdrive.ui.mici.onroad.torque_bar import TorqueBar
@@ -77,12 +81,15 @@ class HudRenderer(Widget):
 
     self._exp_button: ExpButton = ExpButton(UI_CONFIG.button_size, UI_CONFIG.wheel_icon_size)
 
-    self._hank_profile = HankProfileUIModel(Params())
+    self._params = Params()
+    self._hank_profile = HankProfileUIModel(self._params)
+    self._hank_owner = HankOwnerUIModel(self._params)
     self._hank_error = None
     self._hank_buttons = [
       Button(label, lambda mode=mode: self._request_hank_profile(mode), font_size=34, button_style=ButtonStyle.NORMAL)
       for label, mode in (("緊湊", "compact"), ("一般", "normal"), ("舒適", "comfortable"))
     ]
+    self._owner_button = Button("", self._owner_action, font_size=31, button_style=ButtonStyle.NORMAL)
     self._torque_bar = TorqueBar(scale=4.0)
 
   def _update_state(self) -> None:
@@ -140,7 +147,7 @@ class HudRenderer(Widget):
       self._torque_bar.render(rect)
 
   def user_interacting(self) -> bool:
-    return self._exp_button.is_pressed or any(button.is_pressed for button in self._hank_buttons)
+    return self._exp_button.is_pressed or self._owner_button.is_pressed or any(button.is_pressed for button in self._hank_buttons)
 
   def _request_hank_profile(self, profile: str) -> None:
     try:
@@ -149,32 +156,73 @@ class HudRenderer(Widget):
     except (ValueError, OSError, RuntimeError) as error:
       self._hank_error = str(error)
 
+  def _owner_action(self):
+    view = self._hank_owner.state(ui_state.CP)
+    if view.reboot_available:
+      show_reboot_confirmation(self._params)
+      return
+    if not view.action_enabled or view.action_target is None:
+      return
+    target = view.action_target
+
+    def confirmed(result):
+      if result == DialogResult.CONFIRM:
+        self._hank_owner.onroad_request(target, ui_state.CP)
+
+    dialog = ConfirmDialog(self._hank_owner.confirmation_text(target), tr(f"Switch to {target}"))
+    gui_app.set_modal_overlay(dialog, callback=confirmed)
+
   def _draw_hank_profile(self, rect: rl.Rectangle) -> None:
-    has_long = ui_state.CP is not None and ui_state.CP.openpilotLongitudinalControl
+    owner_state = self._hank_owner.state(ui_state.CP)
+    has_long = (owner_state.current_owner == "HANK" if owner_state.visible
+                else ui_state.CP is not None and ui_state.CP.openpilotLongitudinalControl)
     state = self._hank_profile.state(has_long)
     x = rect.x + rect.width - 790
     y = rect.y + 270
-    panel = rl.Rectangle(x, y, 760, 225)
+    panel = rl.Rectangle(x, y, 760, 330 if owner_state.visible else 225)
     rl.draw_rectangle_rounded(panel, 0.12, 8, COLORS.BLACK_TRANSLUCENT)
     rl.draw_rectangle_rounded_lines_ex(panel, 0.12, 8, 2, COLORS.BORDER_TRANSLUCENT)
-    owner = "HANK" if has_long else "TSS owns longitudinal"
-    active = state.active_label if has_long else f"{state.active_label} (stored HANK)"
-    heading = f"{owner}  Active: {active}  Requested: {state.requested_label}"
+    if owner_state.visible:
+      heading = owner_state.status
+      active = state.active_label if owner_state.profile_role == "active" else f"{state.active_label} (stored HANK)"
+      profile = f"Active: {active}  Requested: {state.requested_label}"
+    else:
+      owner = "HANK" if has_long else "TSS owns longitudinal"
+      active = state.active_label if has_long else f"{state.active_label} (stored HANK)"
+      heading = f"{owner}  Active: {active}  Requested: {state.requested_label}"
+      profile = None
     rl.draw_text_ex(self._font_medium, heading, rl.Vector2(x + 18, y + 12), 33, 0, COLORS.WHITE)
+    if profile is not None:
+      rl.draw_text_ex(self._font_medium, profile, rl.Vector2(x + 18, y + 52), 29, 0, COLORS.WHITE)
     active_config = read_config(self._hank_profile.params, ACTIVE)
-    apm_override = (has_long and active_config.state == ReadState.VALID
+    apm_override = (owner_state.state == "CURRENT_HANK" and active_config.state == ReadState.VALID
                     and isinstance(active_config.value, HankConfigV2)
                     and ui_state.sm["selfdriveState"].personality != base_personality(active_config.value))
-    detail = (self._hank_error or state.error or
-              ("Pending: next onroad session" if state.pending else "Current session profile"))
-    if apm_override:
-      detail += " | APM effective override"
-    rl.draw_text_ex(self._font_medium, detail, rl.Vector2(x + 18, y + 63), 29, 0,
+    profile_detail = (self._hank_error or state.error or
+                      ("Pending: next onroad session" if state.pending else "Current session profile"))
+    if owner_state.state == "CURRENT_HANK":
+      detail = profile_detail
+      if active_config.state == ReadState.VALID and isinstance(active_config.value, HankConfigV2):
+        detail += f" | Dynamic Follow: {'On' if active_config.value.dynamic_follow else 'Off'}"
+      if apm_override:
+        detail += " | APM effective override"
+    elif owner_state.visible:
+      detail = owner_state.detail
+    else:
+      detail = profile_detail
+    detail_y = y + (92 if owner_state.visible else 63)
+    detail_size = 25 if owner_state.visible and not owner_state.state.startswith("CURRENT_") else 29
+    rl.draw_text_ex(self._font_medium, detail, rl.Vector2(x + 18, detail_y), detail_size, 0,
                     COLORS.ENGAGED if state.pending else COLORS.WHITE)
-    button_y = y + 118
+    button_y = y + (135 if owner_state.visible else 118)
     for index, button in enumerate(self._hank_buttons):
-      button.set_enabled(has_long and state.hank_controls_longitudinal)
+      button.set_enabled((owner_state.state == "CURRENT_HANK" if owner_state.visible else has_long)
+                         and state.hank_controls_longitudinal)
       button.render(rl.Rectangle(x + 18 + index * 246, button_y, 230, 85))
+    if owner_state.visible:
+      self._owner_button.set_text("Reboot C3X" if owner_state.reboot_available else owner_state.action_label)
+      self._owner_button.set_enabled(owner_state.action_enabled or owner_state.reboot_available)
+      self._owner_button.render(rl.Rectangle(x + 18, y + 235, 724, 75))
 
   def _draw_set_speed(self, rect: rl.Rectangle) -> None:
     """Draw the MAX speed indicator box."""

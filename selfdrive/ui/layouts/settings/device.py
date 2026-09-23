@@ -7,6 +7,7 @@ from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.ui.onroad.driver_camera_dialog import DriverCameraDialog
+from openpilot.selfdrive.ui.reboot import show_reboot_confirmation
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.selfdrive.ui.layouts.onboarding import TrainingGuide
 from openpilot.selfdrive.ui.widgets.pairing_dialog import PairingDialog
@@ -181,16 +182,7 @@ class DeviceLayout(Widget):
     self._reset_calib_btn.set_description(desc)
 
   def _reboot_prompt(self):
-    if ui_state.engaged:
-      gui_app.set_modal_overlay(alert_dialog(tr("Disengage to Reboot")))
-      return
-
-    dialog = ConfirmDialog(tr("Are you sure you want to reboot?"), tr("Reboot"))
-    gui_app.set_modal_overlay(dialog, callback=self._perform_reboot)
-
-  def _perform_reboot(self, result: int):
-    if not ui_state.engaged and result == DialogResult.CONFIRM:
-      self._params.put_bool_nonblocking("DoReboot", True)
+    show_reboot_confirmation(self._params)
 
   def _power_off_prompt(self):
     if ui_state.engaged:
