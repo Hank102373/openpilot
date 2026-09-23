@@ -132,3 +132,30 @@ D-025 is `ACCEPTED_FOR_IMPLEMENTATION`. Exact helper equations use explicit T-fo
 Three identical runs of each of the six zero-speed cases were exact repeats. All 18 were valid with status 0 and `lead0`; e2e ended at zero speed/acceleration, while non-e2e maximum final speed was `0.002925707 m/s` and maximum absolute final acceleration was `3.741398e-05 m/s²`. Approximately 3.0 m and `p[5] * p[6]` remain diagnostic observations only, not product or physical-gap targets.
 
 This checkpoint is documentation-only. No production/test code, tolerance, longitudinal tuning, UI, solver or generated artifact changed. B2 final verification has not passed. **NEXT: `PHASE1_B2_FOLLOWING_DISTANCE_TEST_CONTRACT_IMPLEMENTATION`.** C3X, physical-gap mapping, V0–V3, P0/full release acceptance, vehicle safety and deployment approval remain outstanding.
+
+## Current continuation state — Phase-1 UI-02 B2 complete (2026-09-23)
+
+- Implementation branch: `hank/implementation-v1`
+- Current implementation HEAD: `324b4588b44026b8b1757ba32ecb755c21bce1bb`
+- Working state before this docs-only sync: clean
+- Remote state before this docs-only sync: `origin/hank/implementation-v1` matched `324b4588b44026b8b1757ba32ecb755c21bce1bb`
+- Last completed gate: `PHASE1_UI02_FINAL_VERIFY_B2_PASS`
+- Next gate: `PHASE1_RC_READINESS_RERUN`
+
+Continuation map:
+
+| Unit | Commit | Durable result |
+|---|---|---|
+| UI-01 three-mode profile configuration | `17d75acb523c050a1fbad0b3237c968b3625e88f` | Implemented and verified: CFG v2, Compact/Normal/Comfortable, Requested/Active/pending, independent Dynamic Follow, Requested-only gap cycle and APM separation |
+| UI-02 owner core | `f93b319960f4a5d88345e62f4895e085d38a31e5` | Implemented and verified: single coordinator, five-field transaction, gate-first flow, fresh evidence, rollback, `SWITCH_FAILED`, boot-bound recovery and hard engagement interlock |
+| UI-02 UI wiring | `fa13c3fcbcb278220419380b8ec124c1fe975d2e` | Implemented and verified: coordinator-only settings/onroad actions, truthful HANK/TSS state, explicit failure and reboot fallback |
+| D-025 closure | `5f4086b462c50128ff0dac1d2aa3fed52d510289` | Accepted personality-complete following-distance regression ownership |
+| D-025 implementation | `324b4588b44026b8b1757ba32ecb755c21bce1bb` | Test-only implementation accepted; no production or solver behavior changed |
+
+Final B2 evidence: UI/owner/CFG Part A `317 passed in 29.64s`; D-025 acceptance `14` following-distance plus `13` stop-distance tests; targeted HANK longitudinal Part B `436 passed / 0 failed in 31.16s`; full longitudinal `4 passed / 58 subtests in 31.54s` with 42 baseline-matching SQP_RTI status-3 diagnostics; full `scons -u -j4` exit 0 in 62.56 seconds with only the known CasADi 3.7.2 warning and no tracked generated-solver diff.
+
+Frozen production state: `PARAM_DIM = 7`; `COMFORT_BRAKE = 2.5`; Stop Distance Relaxed/Standard/Aggressive = `4.5/4.0/4.0`; D-022 gain/cap `0.09/0.6 m` remain **C3X BENCH SEED ONLY — NOT PRODUCT DEFAULT**. PORT-01, PORT-02, PORT-03, F-002, F-005 and D-022 remain accepted and unchanged by UI/D-025 work.
+
+Phase-1 functional implementation is **COMPLETE** and WSL/software verification is **PASS**. C3X installation/boot/runtime, actual device manager lifecycle, Panda runtime evidence, stationary owner switching, physical stopped-gap, real CAN behavior, V0–V3, D-022 final tuning, P0/full release acceptance, deployment and vehicle safety remain unproven. Phase 1 is not fully released, and no release branch decision is made here.
+
+**NEXT: `PHASE1_RC_READINESS_RERUN`.** A fresh session should start from this checkpoint and use actual evidence to decide whether the next gate is an RC1 branch or C3X bench work.

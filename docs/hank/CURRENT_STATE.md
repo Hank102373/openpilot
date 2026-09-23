@@ -1,13 +1,13 @@
 # HANK current implementation state
 
-Updated: 2026-09-22. Scope: durable implementation and verification state through D-022 radar ACC early-decel software implementation. This is not a release or vehicle-validation approval.
+Updated: 2026-09-23. Scope: durable implementation and WSL/software verification state through UI-01, UI-02, D-025 and final B2. This is not a release or vehicle-validation approval.
 
 ## Repository state
 
 - Repository: `Hank102373/dp-sienna-0103`
 - Branch: `hank/implementation-v1`
-- Current implementation checkpoint: `93340bf33c7e494123a0c2776aa8a35586d47505`
-- Remote state at synchronization start: `origin/hank/implementation-v1` matched `93340bf33c7e494123a0c2776aa8a35586d47505`; working tree was clean.
+- Current implementation checkpoint: `324b4588b44026b8b1757ba32ecb755c21bce1bb`
+- Remote state at synchronization start: `origin/hank/implementation-v1` matched `324b4588b44026b8b1757ba32ecb755c21bce1bb`; working tree was clean.
 - A/main remains the platform authority at `1986516b325cbf8d173f6ebaea989ed45673c49f`.
 - `sienna-longitudinal-dev` remains research only under D-018.
 - WSL Ubuntu 24.04 provides the executable development environment at `/home/hank/src/dp-sienna-0103`.
@@ -340,3 +340,28 @@ The former ENV-001 blocker is closed: the WSL environment has executed setup, na
 | D-022 radar ACC early deceleration | `93340bf33c7e494123a0c2776aa8a35586d47505` | Revert D-022 source/tests independently; no solver model change |
 
 Architecture authority remains `HANK_INTEGRATION_SPEC.md`, `HANK_DECISION_LOG.md`, and `HANK_TEST_MATRIX.md`. This file records execution status and does not supersede D-001 through D-022.
+
+## Current continuation state — Phase-1 UI-02 final B2 software verification (2026-09-23)
+
+UI-01, UI-02 core, UI-02 wiring and D-025 are now implemented and software verified. The implementation sequence is UI-01 `17d75acb523c050a1fbad0b3237c968b3625e88f`, UI-02 core `f93b319960f4a5d88345e62f4895e085d38a31e5`, UI-02 wiring `fa13c3fcbcb278220419380b8ec124c1fe975d2e`, D-025 closure `5f4086b462c50128ff0dac1d2aa3fed52d510289`, and D-025 test-contract implementation `324b4588b44026b8b1757ba32ecb755c21bce1bb`.
+
+UI-01 implements three primary HANK profiles: Compact/緊湊 = Aggressive + sport, Normal/一般 = Standard + normal, and Comfortable/舒適 = Relaxed + eco. Original/default restore is Standard + stock + Dynamic Follow false. Dynamic Follow remains independent. The gap button changes only the complete Requested profile while HANK owns longitudinal; Active changes only at the next legitimate session snapshot. A same-session restart reuses Active. APM changes only effective personality and does not mutate Requested or Active.
+
+UI-02 implements a single coordinator authority around `HankOwnerSwitchState` and `HankOwnerSessionVerified`. Transaction v1 has exactly `version`, `confirmed_owner`, `target_owner`, `state`, and `failure_boot_id`. UI actions use coordinator transport only and do not directly write owner Params. The transaction closes the gate first, rechecks fresh disengaged state, writes/read-backs the target owner, issues exactly one lifecycle request, observes actual Offroad and a new Onroad, then verifies fresh current-session CarParams and Panda safety before persisting `CONFIRMED` and opening the gate. Failures restore the last confirmed owner Param, enter `SWITCH_FAILED`, remain blocked for the same kernel boot, do not automatically retry, and require a different boot ID plus complete restored-owner verification. Param rollback alone never proves runtime rollback. `selfdrived` provides hard NO_ENTRY and IMMEDIATE_DISABLE interlocks; UI provides an explicit full-reboot fallback.
+
+D-025 is Accepted, Implemented and Verified. Its closure and implementation commits are `5f4086b462c50128ff0dac1d2aa3fed52d510289` and `324b4588b44026b8b1757ba32ecb755c21bce1bb`. Exact helper formulas are personality-complete; F-002 owns exact solver-facing `p[6]`; moving-speed maneuvers retain approximate analytic behavior and unchanged tolerances; zero-speed maneuvers require stable valid finite convergence and Relaxed directional separation. Approximately 3.0 m and `p[5] * p[6]` are not product targets or physical stopped-gap oracles.
+
+Accepted final software evidence:
+
+- UI/owner/CFG Part A: 317 passed in 29.64 seconds.
+- D-025 acceptance: 14 following-distance and 13 stop-distance tests passed.
+- Targeted HANK longitudinal Part B: 436 passed, 0 failed, in 31.16 seconds; the former Standard/Aggressive non-e2e zero-speed stale-contract failures are resolved.
+- Full longitudinal: 4 passed / 58 subtests passed in 31.54 seconds; SQP_RTI status-3 diagnostic count 42, matching historical baseline.
+- Full SCons: `scons -u -j4`, exit 0 in 62.56 seconds, with only the known CasADi 3.7.2 compatibility warning and no tracked generated-solver diff.
+- Ruff/static: no new regression; final tree clean.
+
+Frozen longitudinal facts remain `PARAM_DIM = 7`, `COMFORT_BRAKE = 2.5`, Stop Distance Relaxed/Standard/Aggressive = `4.5/4.0/4.0`, and D-022 gain/cap = `0.09/0.6 m`. D-022 is still **C3X BENCH SEED ONLY — NOT PRODUCT DEFAULT**; final gain/cap require C3X and vehicle evidence. PORT-01, PORT-02, PORT-03, F-002, F-005 and D-022 remain the accepted implementations.
+
+Phase-1 functional implementation is **COMPLETE**. Phase-1 WSL/software verification is **PASS**. C3X installation, C3X boot/runtime integration, actual manager lifecycle and Panda runtime behavior, stationary HANK/TSS switching, physical stopped distance, real CAN behavior, road behavior, D-022 final gain/cap and vehicle safety are not proven. C3X bench, stationary vehicle and road validation are **NOT STARTED**; Phase 1 is not fully released.
+
+**NEXT: `PHASE1_RC_READINESS_RERUN`.** That gate must decide the next release/bench step from actual evidence; this state sync does not decide whether an RC1 branch or C3X bench comes first.

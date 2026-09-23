@@ -465,7 +465,7 @@ A test failure, new solver failure, or ambiguous ownership change blocks impleme
 
 ## 16. D-023/D-024 Phase-1 UI and owner-selector implementation gates (2026-09-22)
 
-D-023 and D-024 are **ACCEPTED_FOR_IMPLEMENTATION**, not tested or vehicle accepted. Existing T-007, T-011, T-017–T-025 and T-030 still apply. This section makes their implementation evidence explicit; no `B` or `V0` status is claimed by design closure.
+D-023 and D-024 are **IMPLEMENTED_AND_SOFTWARE_VERIFIED**. UI-01 is implemented at `17d75acb523c050a1fbad0b3237c968b3625e88f`, the UI-02 coordinator/interlock core at `f93b319960f4a5d88345e62f4895e085d38a31e5`, and UI wiring at `fa13c3fcbcb278220419380b8ec124c1fe975d2e`. Existing T-007, T-011, T-017–T-025 and T-030 still apply. No `B` or `V0` status is claimed by this software verification.
 
 | Stage | F-006 / UI-01 profile gates | UI-02 / F-011 owner gates |
 |---|---|---|
@@ -475,13 +475,15 @@ D-023 and D-024 are **ACCEPTED_FOR_IMPLEMENTATION**, not tested or vehicle accep
 | B | On C3X, display and Params/Active timing across engagement, planner restart and legitimate next session; no live profile leakage. | On C3X, exercise both cycles, disengagement/ALKA/ACC blocks, process restarts, fresh card/Panda safety, failed-cycle interlock, explicit reboot fallback and restored-owner post-reboot verification. |
 | V0 | Stationary target-Sienna check of controls, indicator/Requested/Active truthfulness, APM/profile presentation and TSS bypass. | Stationary safe-environment HANK↔TSS, driver takeover, no overlapping commands, owner/Panda/CarParams verification, fail-closed behavior and full reboot recovery. P0 Toyota/SecOC/TSK checks remain separately required. |
 
-UI-01 must show Active versus Requested/pending, advanced original reset, and independent Dynamic Follow. UI-02 must show HANK/TSS confirmed owner, disable unavailable/engaged/ALKA/ACC states, show pending cycle and explicit failure/reboot action, and label stored HANK profiles inactive under TSS. Onroad camera controls and settings use the same owner coordinator. No selector behavior can be accepted from UI-only tests: `selfdrived` engagement must be independently blocked until current-session owner verification succeeds. Passing U/S/R does not imply B/V0, P0/full release acceptance, Phase-1 completion or road approval.
+UI-01 shows Active versus Requested/pending, advanced original reset, and independent Dynamic Follow. UI-02 shows HANK/TSS confirmed owner, disables unavailable/engaged/ALKA/ACC states, shows pending cycle and explicit failure/reboot action, and labels stored HANK profiles inactive under TSS. Onroad camera controls and settings use the same single coordinator transport; they do not directly write owner transaction, gate, owner or lifecycle Params. `selfdrived` independently blocks engagement until current-session owner verification succeeds.
+
+Accepted Part-A software evidence is `317 passed in 29.64s`. It covers strict CFG v1/v2, Requested/Active lifecycle, gap-button Requested-only behavior, APM interaction, independent Dynamic Follow, owner coordinator/service, five-field transaction including `failure_boot_id`, same-boot failure persistence, full-reboot recovery requirements, session gate, `selfdrived` interlock, UI presentation, transport errors and reboot fallback. Passing U/S/R does not imply B/V0, P0/full release acceptance or road approval.
 
 ---
 
 ## 17. D-025 following-distance regression contract after F-002 (2026-09-23)
 
-D-025 is **ACCEPTED_FOR_IMPLEMENTATION**. It corrects the stale regression-test contract only; it authorizes no production longitudinal or solver change.
+D-025 is **ACCEPTED, IMPLEMENTED_AND_VERIFIED**. Closure commit: `5f4086b462c50128ff0dac1d2aa3fed52d510289`. Test-contract implementation commit: `324b4588b44026b8b1757ba32ecb755c21bce1bb`. It corrects the stale regression-test contract only and changes no production longitudinal or solver behavior.
 
 | Owner | Required implementation evidence |
 |---|---|
@@ -494,4 +496,23 @@ D-025 is **ACCEPTED_FOR_IMPLEMENTATION**. It corrects the stale regression-test 
 
 The zero-speed thresholds reuse existing Plant/maneuver semantics. The closure probe ran every e2e/personality pair three times: all 18 runs were valid with status 0 and `lead0`; each case repeated exactly. E2e ended at zero speed/acceleration. Non-e2e maximum final speed was `0.002925707 m/s`, and maximum absolute final acceleration was `3.741398e-05 m/s²`. These observations justify convergence checks but do not freeze exact gaps, bitwise repeatability or product margins.
 
-After implementation, rerun the corrected following-distance suite, the targeted HANK longitudinal suite, full longitudinal regression with SQP_RTI diagnostic comparison, Ruff/static checks, full SCons, protected-scope review and final clean-tree check required by `PHASE1_UI02_FINAL_VERIFY_B2`. Approximately 3.0 m and `0.75 * p[6]` remain diagnostics only. Physical bumper gap, the desired vehicle-level 1–2 m goal, C3X behavior and vehicle safety remain outside this unit-test contract.
+Implementation acceptance passed `14` following-distance tests and `13` stop-distance tests. Semantic ownership remains separated: analytic helpers own the exact personality-complete formula; F-002 owns exact solver-facing `p[6]`; moving-speed maneuvers own approximate analytic behavior with unchanged tolerances; zero-speed maneuvers own stable finite convergence and Relaxed directional separation. Approximately 3.0 m and `0.75 * p[6]` remain diagnostics only, not product targets or physical bumper-gap oracles.
+
+## 18. Phase-1 UI-02 B2 final software verification status (2026-09-23)
+
+| Gate | Status | Accepted evidence |
+|---|---|---|
+| UI-01 implementation | PASS | `17d75acb523c050a1fbad0b3237c968b3625e88f`; three-mode CFG v2, Requested/Active and independent Dynamic Follow |
+| UI-02 core | PASS | `f93b319960f4a5d88345e62f4895e085d38a31e5`; coordinator, gate and fail-closed interlock |
+| UI-02 UI wiring | PASS | `fa13c3fcbcb278220419380b8ec124c1fe975d2e`; coordinator-only requests and truthful HANK/TSS presentation |
+| D-025 diagnosis | PASS | `STALE_TEST_CONTRACT_AFTER_F002`; production behavior was not changed |
+| D-025 closure | PASS | `5f4086b462c50128ff0dac1d2aa3fed52d510289` |
+| D-025 implementation acceptance | PASS | `324b4588b44026b8b1757ba32ecb755c21bce1bb`; 14 following-distance and 13 stop-distance tests passed |
+| B2 final software verification | PASS | Part A 317 passed; Part B 436 passed; full longitudinal 4 tests/58 subtests; SQP_RTI status-3 count 42; SCons exit 0 |
+| C3X bench | NOT RUN | No installation, device boot/runtime, manager lifecycle or Panda runtime evidence |
+| Stationary vehicle | NOT RUN | No physical owner switch, stopped-gap or target-Sienna stationary evidence |
+| Road validation | NOT RUN | No V1–V3 or vehicle-safety evidence |
+
+The accepted B2 build ran `scons -u -j4` in 62.56 seconds with only the known CasADi 3.7.2 compatibility warning and no tracked generated-solver diff. Frozen production values remain `PARAM_DIM = 7`, `COMFORT_BRAKE = 2.5`, Stop Distance Relaxed/Standard/Aggressive = `4.5/4.0/4.0`, and D-022 C3X bench seed gain/cap = `0.09/0.6 m`. The D-022 seed remains **C3X BENCH SEED ONLY — NOT PRODUCT DEFAULT**.
+
+Phase-1 functional implementation is **COMPLETE** and WSL/software verification is **PASS**. C3X bench, stationary vehicle and road validation are **NOT STARTED**. This does not mark Phase 1 fully released. **NEXT: `PHASE1_RC_READINESS_RERUN`.**
