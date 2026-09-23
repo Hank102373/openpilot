@@ -914,6 +914,12 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
     ET.NO_ENTRY: NoEntryAlert("Electronic Stability Control Active"),
   },
 
+  EventName.hankOwnerUnverified: {
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Longitudinal Owner Unverified"),
+    ET.NO_ENTRY: NoEntryAlert("Longitudinal Owner Unverified"),
+    ET.PERMANENT: NormalPermanentAlert("Owner verification required", "Switch failure requires full device reboot"),
+  },
+
   EventName.controlsMismatch: {
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Controls Mismatch"),
     ET.NO_ENTRY: NoEntryAlert("Controls Mismatch"),

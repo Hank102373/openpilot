@@ -33,12 +33,7 @@ SETTINGS = [
         "title": lambda: tr("Enable TSS1 SnG Mod"),
         "description": ""
       },
-      {
-        "key": "dp_toyota_stock_lon",
-        "type": "toggle_item",
-        "title": lambda: tr("Use Stock Longitudinal Control"),
-        "description": ""
-      },
+      # D-024: owner changes must use the manager coordinator; UI-02 selector follows separately.
 
     ],
   },

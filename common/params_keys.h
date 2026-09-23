@@ -144,6 +144,8 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"dp_lon_ext_radar", {PERSISTENT, BOOL, "0"}},
     {"dp_lat_road_edge_detection", {PERSISTENT, BOOL, "0"}},
     {"dp_ui_rainbow", {PERSISTENT, BOOL, "0"}},
+    {"HankOwnerSwitchState", {PERSISTENT, JSON}},
+    {"HankOwnerSessionVerified", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION | CLEAR_ON_ONROAD_TRANSITION | CLEAR_ON_IGNITION_ON, BOOL}},
     {"HankConfigRequested", {PERSISTENT, JSON}},
     {"HankConfigActive", {CLEAR_ON_OFFROAD_TRANSITION | CLEAR_ON_IGNITION_ON, JSON}},
     {"HankConfigSessionStarted", {CLEAR_ON_OFFROAD_TRANSITION | CLEAR_ON_IGNITION_ON, BOOL}},

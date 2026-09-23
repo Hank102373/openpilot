@@ -10,6 +10,7 @@ from msgq.visionipc import VisionIpcClient, VisionStreamType
 
 
 from openpilot.common.params import Params
+from openpilot.selfdrive.selfdrived.hank_owner import interlock_reason
 from openpilot.selfdrive.controls.lib.hank_config import (HankConfigV2, ReadState, base_personality, cycle_requested_profile,
                                                         read_config, read_latch, ACTIVE, REQUESTED)
 from openpilot.common.realtime import config_realtime_process, Priority, Ratekeeper, DT_CTRL
@@ -64,6 +65,13 @@ def read_hank_session_personality(params):
     if requested.state == ReadState.MISSING or (requested.state == ReadState.VALID and not isinstance(requested.value, HankConfigV2)):
       return None, True  # CFG-01 v1 may still be initializing; retain its existing path.
   return None, False
+
+
+def add_owner_interlock(events, params, cp):
+  reason = interlock_reason(params, cp)
+  if reason is not None:
+    events.add(EventName.hankOwnerUnverified)
+  return reason
 
 
 class SelfdriveD:
@@ -176,6 +184,10 @@ class SelfdriveD:
     """Compute onroadEvents from carState"""
 
     self.events.clear()
+    owner_reason = add_owner_interlock(self.events, self.params, self.CP)
+    if owner_reason != getattr(self, "_owner_interlock_reason", None):
+      cloudlog.warning(f"HANK owner interlock: {owner_reason}")
+      self._owner_interlock_reason = owner_reason
 
     if self.sm['controlsState'].lateralControlState.which() == 'debugState':
       self.events.add(EventName.joystickDebug)

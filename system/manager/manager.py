@@ -21,6 +21,7 @@ from openpilot.common.swaglog import cloudlog, add_file_handler
 from openpilot.system.version import get_build_metadata
 from openpilot.system.hardware.hw import Paths
 from openpilot.system.manager.vehicle_model_collector import VehicleModelCollector
+from openpilot.system.manager.hank_owner_service import OwnerService
 
 # rick - dynamically import panda
 import importlib
@@ -141,8 +142,9 @@ def manager_thread() -> None:
     ignore.append("pandad")
   ignore += [x for x in os.getenv("BLOCK", "").split(",") if len(x) > 0]
 
-  sm = messaging.SubMaster(['deviceState', 'carParams', 'pandaStates'], poll='deviceState')
+  sm = messaging.SubMaster(['deviceState', 'carParams', 'pandaStates', 'selfdriveState', 'carControl', 'carState'], poll='deviceState')
   pm = messaging.PubMaster(['managerState'])
+  owner_service = OwnerService(params, sm)
 
   write_onroad_params(False, params)
   ensure_running(managed_processes.values(), False, params=params, CP=sm['carParams'], not_run=ignore)
@@ -166,6 +168,7 @@ def manager_thread() -> None:
 
     if started and not started_prev:
       params.clear_all(ParamKeyFlag.CLEAR_ON_ONROAD_TRANSITION)
+      owner_service.session_cleared(sm['deviceState'].startedMonoTime)
     elif not started and started_prev:
       params.clear_all(ParamKeyFlag.CLEAR_ON_OFFROAD_TRANSITION)
 
@@ -192,6 +195,7 @@ def manager_thread() -> None:
     started_prev = started
     ignition_prev = ignition
 
+    owner_service.poll()
     ensure_running(managed_processes.values(), started, params=params, CP=sm['carParams'], not_run=list(set(ignore) | set(dp_ignore)))
 
     running = ' '.join("{}{}\u001b[0m".format("\u001b[32m" if p.proc.is_alive() else "\u001b[31m", p.name)
@@ -224,6 +228,8 @@ def manager_thread() -> None:
 
     if shutdown:
       break
+
+  owner_service.close()
 
 
 def main() -> None:
