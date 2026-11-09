@@ -1,3 +1,5 @@
+> CURRENT EXECUTION: follow ../../HANK_EXECUTION_PLAN.md and CURRENT_STATE.md. Earlier NEXT/PASS statements below are dated historical records, not current instructions.
+
 # HANK implementation checkpoint — IMPL-00
 
 > **Historical checkpoint:** This document preserves the audit state recorded before an executable WSL environment and runtime implementation were available. Its blockers and test status are historical evidence, not the current project state. See [CURRENT_STATE.md](CURRENT_STATE.md) for the durable state through E-001, E-002, and PORT-01.
@@ -159,3 +161,11 @@ Frozen production state: `PARAM_DIM = 7`; `COMFORT_BRAKE = 2.5`; Stop Distance R
 Phase-1 functional implementation is **COMPLETE** and WSL/software verification is **PASS**. C3X installation/boot/runtime, actual device manager lifecycle, Panda runtime evidence, stationary owner switching, physical stopped-gap, real CAN behavior, V0–V3, D-022 final tuning, P0/full release acceptance, deployment and vehicle safety remain unproven. Phase 1 is not fully released, and no release branch decision is made here.
 
 **NEXT: `PHASE1_RC_READINESS_RERUN`.** A fresh session should start from this checkpoint and use actual evidence to decide whether the next gate is an RC1 branch or C3X bench work.
+
+## GOV-01 / readiness audit correction — 2026-11-10
+
+Audited runtime baseline: b35a4c1bdbe83468690935cf08d6c3e8d0174855. RC1 and mirror flat RC1 refs exist. The earlier RC-readiness NEXT is completed historical work, not a request to repeat it.
+
+The new execution authority is [HANK_EXECUTION_PLAN.md](../../HANK_EXECUTION_PLAN.md); the single current continuation pointer is [CURRENT_STATE.md](CURRENT_STATE.md). GOV-01 adds the plan, root instructions, history preservation and durable [audit evidence](evidence/2026-11-10/README.md), with no runtime change.
+
+Fresh suites/build passed within their tested scope, but UI compliance is OPEN: blocked/unavailable actions stay enabled contrary to D-024, and APM override display observes base rather than planner effective personality. Prior UI PASS is not proof these requirements are satisfied. FIX-UI-01 is the first runtime correction; FIX-UI-02 follows. C3X/vehicle/release remain unvalidated. Do not move RC1 refs or reuse old PORT-01-only requirements against the current seven-parameter MPC.

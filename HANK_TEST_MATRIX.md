@@ -1,3 +1,5 @@
+> Current execution order: HANK_EXECUTION_PLAN.md. Current continuation: docs/hank/CURRENT_STATE.md. Dated historical PASS/NEXT entries below do not override the latest audit findings in section 19.
+
 # HANK Test Matrix
 
 **Document:** HANK_TEST_MATRIX.md  
@@ -516,3 +518,22 @@ Implementation acceptance passed `14` following-distance tests and `13` stop-dis
 The accepted B2 build ran `scons -u -j4` in 62.56 seconds with only the known CasADi 3.7.2 compatibility warning and no tracked generated-solver diff. Frozen production values remain `PARAM_DIM = 7`, `COMFORT_BRAKE = 2.5`, Stop Distance Relaxed/Standard/Aggressive = `4.5/4.0/4.0`, and D-022 C3X bench seed gain/cap = `0.09/0.6 m`. The D-022 seed remains **C3X BENCH SEED ONLY — NOT PRODUCT DEFAULT**.
 
 Phase-1 functional implementation is **COMPLETE** and WSL/software verification is **PASS**. C3X bench, stationary vehicle and road validation are **NOT STARTED**. This does not mark Phase 1 fully released. **NEXT: `PHASE1_RC_READINESS_RERUN`.**
+
+## 19. Readiness audit and corrective gates (2026-11-10)
+
+Runtime under audit: `b35a4c1bdbe83468690935cf08d6c3e8d0174855`. Evidence: [audit logs and reproduction details](docs/hank/evidence/2026-11-10/README.md).
+
+| Gate | Current result | Scope / limitation |
+|---|---|---|
+| Selected HANK/control/CFG/owner/UI suites | PASS: 727 | Existing tests; not proof all UI requirements are covered |
+| Existing leads/LongControl | PASS: 4 | One Python multiprocessing fork warning |
+| Full longitudinal maneuvers | PASS: 4 / 58 subtests | SQP_RTI status-3 count 42, historical baseline match |
+| SCons | PASS | Existing WSL workspace build; not a clean-room/C3X build |
+| Changed-Python Ruff | BASELINE DEBT | 17 errors; zero new diagnostics against A code/message/source-line fingerprints |
+| D-024 blocked/unavailable action | OPEN / contract probe fails | Three isolated actual Params cases return enabled where disabled is required; existing test expects the wrong result |
+| D-023 APM effective display | OPEN / source data-flow mismatch | Actual APM override differs from base; HUD uses published base; no rendered UI verification |
+| Corrective fresh-state recovery | NOT RUN | FIX-UI-01 must prove re-enable after fresh safe evidence, no automatic retry, and request-time coordinator rejection |
+| Cross planner/UI APM correction | NOT RUN | FIX-UI-02 must prove actual effective-state display and stale-data handling |
+| C3X / stationary Sienna / V1-V3 | NOT RUN | Software results do not grant device or vehicle approval |
+
+Prior B2/UI PASS remains historical evidence for those executed tests, not blanket compliance. See the execution plan for ordered correction gates. D-025 tolerances, seven-parameter solver ownership, D-022 bench-seed classification and P0 trust boundaries remain unchanged.

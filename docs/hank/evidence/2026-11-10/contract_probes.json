@@ -1,0 +1,28 @@
+[
+  {
+    "state": "BLOCKED_ENGAGED",
+    "expected_action_enabled": false,
+    "actual_action_enabled": true,
+    "contract_pass": false
+  },
+  {
+    "state": "BLOCKED_STALE_OR_INVALID",
+    "expected_action_enabled": false,
+    "actual_action_enabled": true,
+    "contract_pass": false
+  },
+  {
+    "state": "TRANSPORT_UNAVAILABLE",
+    "expected_action_enabled": false,
+    "actual_action_enabled": true,
+    "contract_pass": false
+  },
+  {
+    "case": "APM low-speed standard base",
+    "base": 1,
+    "planner_effective": 0,
+    "HUD_comparison_using_published_base": false,
+    "actual_override": true,
+    "evidence": "APM runtime + source-traced HUD expression, not rendered visual test"
+  }
+]

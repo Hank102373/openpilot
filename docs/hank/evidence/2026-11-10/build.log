@@ -1,0 +1,193 @@
+scons: Reading SConscript files ...
+scons: done reading SConscript files.
+scons: Building targets ...
+arm-none-eabi-gcc -o panda/board/board/obj/body_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c
+Building compilation database compile_commands.json
+arm-none-eabi-gcc -o panda/board/board/obj/panda_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c
+arm-none-eabi-gcc -o panda/board/board/obj/panda_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/main.c
+arm-none-eabi-gcc -o panda/board/board/obj/panda_jungle_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c
+arm-none-eabi-gcc -o panda/board/body/board/obj/body_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/body/main.c
+arm-none-eabi-gcc -o panda/board/jungle/board/obj/panda_jungle_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/jungle/main.c
+arm-none-eabi-gcc -o panda/board/obj/body_h7/bootstub.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB panda/board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o panda/crypto/board/obj/body_h7rsa.o panda/crypto/board/obj/body_h7sha.o panda/board/board/obj/body_h7bootstub.o
+arm-none-eabi-objcopy -O binary panda/board/obj/body_h7/bootstub.elf panda/board/obj/bootstub.body_h7.bin
+arm-none-eabi-gcc -o panda/board/obj/panda_h7/bootstub.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB panda/board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o panda/crypto/board/obj/panda_h7rsa.o panda/crypto/board/obj/panda_h7sha.o panda/board/board/obj/panda_h7bootstub.o
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_h7/bootstub.elf panda/board/obj/bootstub.panda_h7.bin
+arm-none-eabi-gcc -o panda/board/obj/panda_jungle_h7/bootstub.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB panda/board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o panda/crypto/board/obj/panda_jungle_h7rsa.o panda/crypto/board/obj/panda_jungle_h7sha.o panda/board/board/obj/panda_jungle_h7bootstub.o
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_jungle_h7/bootstub.elf panda/board/obj/bootstub.panda_jungle_h7.bin
+arm-none-eabi-gcc -o panda_tici/board/bootstub-panda.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+arm-none-eabi-gcc -o panda_tici/board/bootstub-panda_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+arm-none-eabi-gcc -o panda/board/obj/panda_h7/main.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g panda/board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o panda/board/board/obj/panda_h7main.o
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_h7/main.elf panda/board/obj/panda_h7/main.bin
+SETLEN=1 panda/crypto/sign.py panda/board/obj/panda_h7/main.bin panda/board/obj/panda_h7.bin.signed panda/certs/debug
+arm-none-eabi-gcc -o panda/board/obj/body_h7/main.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g panda/board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o panda/board/body/board/obj/body_h7main.o
+signing 68312 bytes
+hash: b9a9ff579c4664c9ce77fd58d27c8ab50ef31581
+arm-none-eabi-gcc -o panda_tici/board/jungle/bootstub-panda_jungle.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+arm-none-eabi-gcc -o panda/board/obj/panda_jungle_h7/main.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g panda/board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o panda/board/jungle/board/obj/panda_jungle_h7main.o
+arm-none-eabi-objcopy -O binary panda/board/obj/body_h7/main.elf panda/board/obj/body_h7/main.bin
+SETLEN=1 panda/crypto/sign.py panda/board/obj/body_h7/main.bin panda/board/obj/body_h7.bin.signed panda/certs/debug
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_jungle_h7/main.elf panda/board/obj/panda_jungle_h7/main.bin
+SETLEN=1 panda/crypto/sign.py panda/board/obj/panda_jungle_h7/main.bin panda/board/obj/panda_jungle_h7.bin.signed panda/certs/debug
+signing 60636 bytes
+hash: a346a7382b4776855e066b5aca27116dca0b73ce
+arm-none-eabi-gcc -o panda_tici/board/jungle/bootstub-panda_jungle_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/main-panda_jungle.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/jungle/main.c
+signing 62404 bytes
+hash: 43475f3ea37378d95335e36de85d35090c5ceba7
+arm-none-eabi-gcc -o panda_tici/board/jungle/main-panda_jungle_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/jungle/main.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/bootstub.panda_jungle.elf -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle.o panda_tici/board/jungle/rsa-panda_jungle.o panda_tici/board/jungle/sha-panda_jungle.o panda_tici/board/jungle/bootstub-panda_jungle.o
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/bootstub.panda_jungle.elf panda_tici/board/jungle/obj/bootstub.panda_jungle.bin
+arm-none-eabi-gcc -o panda_tici/board/main-panda.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/main.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/bootstub.panda_jungle_h7.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle_h7.o panda_tici/board/jungle/rsa-panda_jungle_h7.o panda_tici/board/jungle/sha-panda_jungle_h7.o panda_tici/board/jungle/bootstub-panda_jungle_h7.o
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/bootstub.panda_jungle_h7.elf panda_tici/board/jungle/obj/bootstub.panda_jungle_h7.bin
+arm-none-eabi-gcc -o panda_tici/board/main-panda_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/main.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/panda_jungle.elf -Wl,--section-start,.isr_vector=0x8004000 -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle.o panda_tici/board/jungle/main-panda_jungle.o
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/panda_jungle.elf panda_tici/board/jungle/obj/panda_jungle.bin
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/jungle/obj/panda_jungle.bin panda_tici/board/jungle/obj/panda_jungle.bin.signed panda_tici/certs/debug
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/panda_jungle_h7.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle_h7.o panda_tici/board/jungle/main-panda_jungle_h7.o
+signing 56892 bytes
+hash: 58e5d125c0fdc9ac85a945ba8b9cb056e01ae332
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/panda_jungle_h7.elf panda_tici/board/jungle/obj/panda_jungle_h7.bin
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/jungle/obj/panda_jungle_h7.bin panda_tici/board/jungle/obj/panda_jungle_h7.bin.signed panda_tici/certs/debug
+arm-none-eabi-gcc -o panda_tici/board/obj/bootstub.panda.elf -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/obj/startup_panda.o panda_tici/board/rsa-panda.o panda_tici/board/sha-panda.o panda_tici/board/bootstub-panda.o
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/bootstub.panda.elf panda_tici/board/obj/bootstub.panda.bin
+signing 60584 bytes
+hash: 9e2501a120f46b2af8dc995848822e71b43253d0
+arm-none-eabi-gcc -o panda_tici/board/obj/bootstub.panda_h7.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/obj/startup_panda_h7.o panda_tici/board/rsa-panda_h7.o panda_tici/board/sha-panda_h7.o panda_tici/board/bootstub-panda_h7.o
+python3 /home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/process.py
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/bootstub.panda_h7.elf panda_tici/board/obj/bootstub.panda_h7.bin
+arm-none-eabi-gcc -o panda_tici/board/obj/panda.elf -Wl,--section-start,.isr_vector=0x8004000 -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/obj/startup_panda.o panda_tici/board/main-panda.o
+RAYLIB STATIC 5.5.0.2 LOADED
+clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.o -c -std=gnu11 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -I/usr/include/python3.12 -I.venv/lib/python3.12/site-packages/numpy/_core/include selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.c
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/panda.elf panda_tici/board/obj/panda.bin
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/obj/panda.bin panda_tici/board/obj/panda.bin.signed panda_tici/certs/debug
+signing 59740 bytes
+hash: 1309c8af09807344fbe603dd61bb183e96dbbe33
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Black.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Black.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Bold.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Bold.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraBold.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraBold.png] Image exported successfully
+arm-none-eabi-gcc -o panda_tici/board/obj/panda_h7.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/obj/startup_panda_h7.o panda_tici/board/main-panda_h7.o
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraLight.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraLight.png] Image exported successfully
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/panda_h7.elf panda_tici/board/obj/panda_h7.bin
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/obj/panda_h7.bin panda_tici/board/obj/panda_h7.bin.signed panda_tici/certs/debug
+signing 68504 bytes
+hash: eafbafc7a0f223ebe042e9f689d7f874b1557496
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Light.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Light.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Medium.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Medium.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Regular.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Regular.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-SemiBold.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-SemiBold.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Thin.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Thin.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/JetBrainsMono-Medium.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/JetBrainsMono-Medium.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-th.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHT.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ko.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ja.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-th.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHT.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ko.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ja.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-th.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHT.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ko.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ja.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-th.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHT.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ko.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ja.png] Image exported successfully
+Processing Inter-Black.ttf -> Inter-Black (274 glyphs @ 200px)...
+Processing Inter-Bold.ttf -> Inter-Bold (274 glyphs @ 200px)...
+Processing Inter-ExtraBold.ttf -> Inter-ExtraBold (274 glyphs @ 200px)...
+Processing Inter-ExtraLight.ttf -> Inter-ExtraLight (274 glyphs @ 200px)...
+Processing Inter-Light.ttf -> Inter-Light (274 glyphs @ 200px)...
+Processing Inter-Medium.ttf -> Inter-Medium (274 glyphs @ 200px)...
+Processing Inter-Regular.ttf -> Inter-Regular (274 glyphs @ 200px)...
+Processing Inter-SemiBold.ttf -> Inter-SemiBold (274 glyphs @ 200px)...
+Processing Inter-Thin.ttf -> Inter-Thin (274 glyphs @ 200px)...
+Processing JetBrainsMono-Medium.ttf -> JetBrainsMono-Medium (274 glyphs @ 200px)...
+Processing OpFont-Bold.otf -> OpFont-Bold-Labels (152 glyphs @ 48px)...
+Processing OpFont-Bold.otf -> OpFont-Bold-th (274 glyphs @ 48px)...
+using font size for line height OpFont-Bold-th.png
+Processing OpFont-Bold.otf -> OpFont-Bold-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-Bold-zh-CHT.png
+Processing OpFont-Bold.otf -> OpFont-Bold-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-Bold-zh-CHS.png
+Processing OpFont-Bold.otf -> OpFont-Bold-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-Bold-ko.png
+Processing OpFont-Bold.otf -> OpFont-Bold-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-Bold-ja.png
+Processing OpFont-Medium.otf -> OpFont-Medium-Labels (152 glyphs @ 48px)...
+Processing OpFont-Medium.otf -> OpFont-Medium-th (274 glyphs @ 48px)...
+using font size for line height OpFont-Medium-th.png
+Processing OpFont-Medium.otf -> OpFont-Medium-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-Medium-zh-CHT.png
+Processing OpFont-Medium.otf -> OpFont-Medium-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-Medium-zh-CHS.png
+Processing OpFont-Medium.otf -> OpFont-Medium-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-Medium-ko.png
+Processing OpFont-Medium.otf -> OpFont-Medium-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-Medium-ja.png
+Processing OpFont-Regular.otf -> OpFont-Regular-Labels (152 glyphs @ 48px)...
+Processing OpFont-Regular.otf -> OpFont-Regular-th (274 glyphs @ 48px)...
+using font size for line height OpFont-Regular-th.png
+Processing OpFont-Regular.otf -> OpFont-Regular-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-Regular-zh-CHT.png
+Processing OpFont-Regular.otf -> OpFont-Regular-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-Regular-zh-CHS.png
+Processing OpFont-Regular.otf -> OpFont-Regular-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-Regular-ko.png
+Processing OpFont-Regular.otf -> OpFont-Regular-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-Regular-ja.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-Labels (152 glyphs @ 48px)...
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-th (274 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-th.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-zh-CHT.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-zh-CHS.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-ko.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-ja.png
+scons: done building targets.

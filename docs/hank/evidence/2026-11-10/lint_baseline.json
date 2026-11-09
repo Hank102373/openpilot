@@ -1,0 +1,32 @@
+[
+  {
+    "file": "dragonpilot/settings.py",
+    "current_count": 13,
+    "baseline_count": 13,
+    "new_diagnostics": []
+  },
+  {
+    "file": "selfdrive/controls/lib/longitudinal_planner.py",
+    "current_count": 1,
+    "baseline_count": 1,
+    "new_diagnostics": []
+  },
+  {
+    "file": "selfdrive/selfdrived/selfdrived.py",
+    "current_count": 1,
+    "baseline_count": 1,
+    "new_diagnostics": []
+  },
+  {
+    "file": "selfdrive/ui/layouts/settings/device.py",
+    "current_count": 1,
+    "baseline_count": 1,
+    "new_diagnostics": []
+  },
+  {
+    "file": "system/manager/manager.py",
+    "current_count": 1,
+    "baseline_count": 1,
+    "new_diagnostics": []
+  }
+]

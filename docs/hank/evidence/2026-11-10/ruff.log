@@ -1,0 +1,194 @@
+E722 Do not use bare `except`
+ --> dragonpilot/settings.py:3:1
+  |
+1 | try:
+2 |   from dragonpilot.system.ui.lib.multilang import tr
+3 | except:
+  | ^^^^^^
+4 |   from openpilot.system.ui.lib.multilang import tr
+  |
+
+E501 Line too long (175 > 160)
+  --> dragonpilot/settings.py:15:161
+   |
+13 | …
+14 | …
+15 | …. openpilot will only control steering. Requires reboot to take effect."),
+   |                                                             ^^^^^^^^^^^^^^^
+16 | …
+17 | …
+   |
+
+E501 Line too long (161 > 160)
+  --> dragonpilot/settings.py:79:161
+   |
+77 | …
+78 | …
+79 | …using ACC Main or LKAS button to toggle. Vehicle must be moving."),
+   |                                                                    ^
+80 | …ord"],
+81 | …
+   |
+
+E501 Line too long (162 > 160)
+   --> dragonpilot/settings.py:120:161
+    |
+118 | …
+119 | …
+120 | …ge.<br>NOTE: This will show 'Car Detected in Blindspot' warning."),
+    |                                                                   ^^
+121 | …
+122 | …
+    |
+
+E501 Line too long (229 > 160)
+   --> dragonpilot/settings.py:126:161
+    |
+124 | …
+125 | …
+126 | …lues move right.<br>Recommended to start with small values (±5cm) and adjust based on preference."),
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+127 | …
+128 | …
+    |
+
+E501 Line too long (194 > 160)
+   --> dragonpilot/settings.py:156:161
+    |
+154 | …
+155 | …
+156 | …oad curvature and grip conditions.<br>Originally from the openpilot TACO branch."),
+    |                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+157 | …
+158 | …
+    |
+
+E501 Line too long (196 > 160)
+   --> dragonpilot/settings.py:168:161
+    |
+166 | …
+167 | …
+168 | …eeds for responsive city driving, smoother changes at highway speeds for comfort."),
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+169 | …
+    |
+
+E501 Line too long (198 > 160)
+   --> dragonpilot/settings.py:181:161
+    |
+179 | …
+180 | …
+181 | … Display ON.<br>MAIN-: ACC MAIN on = Display OFF<br>OP-: OP enabled = Display OFF."),
+    |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+182 | …
+183 | …
+    |
+
+E501 Line too long (173 > 160)
+   --> dragonpilot/settings.py:195:161
+    |
+193 | …
+194 | …
+195 | …Icons when the car moves.<br>Off = Stock Behavior<br>1 km/h = 0.6 mph"),
+    |                                                             ^^^^^^^^^^^^^
+196 | …
+197 | …
+    |
+
+E501 Line too long (258 > 160)
+   --> dragonpilot/settings.py:213:161
+    |
+211 | …
+212 | …
+213 | …acking point stats only<br>All: Lead and Radar stats<br>NOTE: Radar option only works on certain vehicle models."),
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+214 | …
+215 | …
+    |
+
+E501 Line too long (165 > 160)
+   --> dragonpilot/settings.py:283:161
+    |
+281 | …
+282 | …
+283 | … Requires the companion App to be running on an external display."),
+    |                                                                 ^^^^^
+284 | …
+285 | …
+    |
+
+E501 Line too long (175 > 160)
+   --> dragonpilot/settings.py:289:161
+    |
+287 | …
+288 | …
+289 | …ttp://<device_ip>:5088 to access.<br><br>Enable this to use Tesla HUD."),
+    |                                                            ^^^^^^^^^^^^^^^
+290 | …
+291 | …
+    |
+
+E501 Line too long (244 > 160)
+   --> dragonpilot/settings.py:295:161
+    |
+293 | …
+294 | …
+295 | …s the initial moments of a drive from being recorded, protecting location privacy at the start of a trip."),
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+296 | …
+297 | …
+    |
+
+PIE790 [*] Unnecessary `pass` statement
+  --> selfdrive/controls/lib/longitudinal_planner.py:49:3
+   |
+47 |   APM = 2 ** 3
+48 |   DASR = 2 ** 4
+49 |   pass
+   |   ^^^^
+50 |
+51 | def get_max_accel(v_ego):
+   |
+help: Remove unnecessary `pass`
+
+F841 Local variable `build_metadata` is assigned to but never used
+  --> selfdrive/selfdrived/selfdrived.py:82:5
+   |
+81 |     # Ensure the current branch is cached, otherwise the first cycle lags
+82 |     build_metadata = get_build_metadata()
+   |     ^^^^^^^^^^^^^^
+83 |
+84 |     if CP is None:
+   |
+help: Remove assignment to unused variable `build_metadata`
+
+E501 Line too long (188 > 160)
+  --> selfdrive/ui/layouts/settings/device.py:66:161
+   |
+64 | …_prompt)
+65 | …
+66 | …Force openpilot to go into onroad/offroad state.<br>(e.g. for update purpose)"),
+   |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+67 | …
+   |
+
+F811 [*] Redefinition of unused `time` from line 6
+  --> system/manager/manager.py:44:8
+   |
+42 | # Re-export everything
+43 | globals().update({k: v for k, v in _mod.__dict__.items() if not k.startswith("_")})
+44 | import time
+   |        ^^^^ `time` redefined here
+   |
+  ::: system/manager/manager.py:6:8
+   |
+ 4 | import signal
+ 5 | import sys
+ 6 | import time
+   |        ---- previous definition of `time` here
+ 7 | import traceback
+   |
+help: Remove definition: `time`
+
+Found 17 errors.
+[*] 2 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
