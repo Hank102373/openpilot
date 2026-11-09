@@ -1,0 +1,248 @@
+{
+  "rows": [
+    {
+      "profile": "normal",
+      "speed": 8.333333333333334,
+      "apm_enabled": true,
+      "base": 1,
+      "effective": 1,
+      "weights": 1,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "normal",
+      "speed": 0.0,
+      "apm_enabled": true,
+      "base": 1,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": true,
+      "solution_status": 0
+    },
+    {
+      "profile": "normal",
+      "speed": 8.333333333333334,
+      "apm_enabled": true,
+      "base": 1,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": true,
+      "solution_status": 0
+    },
+    {
+      "profile": "normal",
+      "speed": 11.11111111111111,
+      "apm_enabled": true,
+      "base": 1,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": true,
+      "solution_status": 0
+    },
+    {
+      "profile": "normal",
+      "speed": 11.12111111111111,
+      "apm_enabled": true,
+      "base": 1,
+      "effective": 1,
+      "weights": 1,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "normal",
+      "speed": 0.0,
+      "apm_enabled": false,
+      "base": 1,
+      "effective": 1,
+      "weights": 1,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "comfortable",
+      "speed": 8.333333333333334,
+      "apm_enabled": true,
+      "base": 2,
+      "effective": 2,
+      "weights": 2,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "comfortable",
+      "speed": 0.0,
+      "apm_enabled": true,
+      "base": 2,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": true,
+      "solution_status": 0
+    },
+    {
+      "profile": "comfortable",
+      "speed": 8.333333333333334,
+      "apm_enabled": true,
+      "base": 2,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": true,
+      "solution_status": 0
+    },
+    {
+      "profile": "comfortable",
+      "speed": 11.11111111111111,
+      "apm_enabled": true,
+      "base": 2,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": true,
+      "solution_status": 0
+    },
+    {
+      "profile": "comfortable",
+      "speed": 11.12111111111111,
+      "apm_enabled": true,
+      "base": 2,
+      "effective": 2,
+      "weights": 2,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "comfortable",
+      "speed": 0.0,
+      "apm_enabled": false,
+      "base": 2,
+      "effective": 2,
+      "weights": 2,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "compact",
+      "speed": 8.333333333333334,
+      "apm_enabled": true,
+      "base": 0,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "compact",
+      "speed": 0.0,
+      "apm_enabled": true,
+      "base": 0,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "compact",
+      "speed": 8.333333333333334,
+      "apm_enabled": true,
+      "base": 0,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "compact",
+      "speed": 11.11111111111111,
+      "apm_enabled": true,
+      "base": 0,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "compact",
+      "speed": 11.12111111111111,
+      "apm_enabled": true,
+      "base": 0,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    },
+    {
+      "profile": "compact",
+      "speed": 0.0,
+      "apm_enabled": false,
+      "base": 0,
+      "effective": 0,
+      "weights": 0,
+      "hud_override": false,
+      "expected_override": false,
+      "solution_status": 0
+    }
+  ],
+  "published_keys": [
+    "aCruiseDEPRECATED",
+    "aStartDEPRECATED",
+    "aTarget",
+    "aTargetMaxDEPRECATED",
+    "aTargetMinDEPRECATED",
+    "accels",
+    "allowBrake",
+    "allowThrottle",
+    "commIssueDEPRECATED",
+    "decelForTurnDEPRECATED",
+    "fcw",
+    "gpsPlannerActiveDEPRECATED",
+    "hasLead",
+    "hasLeftLaneDEPRECATED",
+    "hasRightLaneDEPRECATED",
+    "jerkFactorDEPRECATED",
+    "jerks",
+    "laneWidthDEPRECATED",
+    "lateralValidDEPRECATED",
+    "longitudinalPlanSource",
+    "longitudinalValidDEPRECATED",
+    "mapValidDEPRECATED",
+    "modelMonoTime",
+    "personalityDEPRECATED",
+    "processingDelay",
+    "radarCanErrorDEPRECATED",
+    "radarStateMonoTimeDEPRECATED",
+    "radarValidDEPRECATED",
+    "shouldStop",
+    "solverExecutionTime",
+    "speeds",
+    "vCruiseDEPRECATED",
+    "vCurvatureDEPRECATED",
+    "vMaxDEPRECATED",
+    "vStartDEPRECATED",
+    "vTargetDEPRECATED",
+    "vTargetFutureDEPRECATED"
+  ],
+  "mismatches": 6,
+  "cfg_unchanged": true
+}
+Traceback (most recent call last):
+  File "/home/hank/src/dp-sienna-0103/docs/hank/evidence/2026-11-10/fix-ui-02-review/baseline_probe.py", line 84, in <module>
+    assert not failures, f'FIX-UI-02: actual HUD misses {len(failures)} real planner effective overrides'
+           ^^^^^^^^^^^^
+AssertionError: FIX-UI-02: actual HUD misses 6 real planner effective overrides

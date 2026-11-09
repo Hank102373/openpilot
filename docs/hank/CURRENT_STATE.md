@@ -23,7 +23,7 @@ Updated: 2026-11-10. Execution authority: [HANK_EXECUTION_PLAN.md](../../HANK_EX
 
 ## IN PROGRESS
 
-FIX-UI-01 software/desktop owner-surface correction is complete in this local checkpoint. FIX-UI-02 and VERIFY-RC-02 have not started. No new RC candidate or deployment approval.
+FIX-UI-01 software/desktop owner-surface correction is complete in this local checkpoint. FIX-UI-02 source/runtime review is complete; D-026 additive telemetry proposal awaits user schema approval. Implementation and VERIFY-RC-02 have not started. No new RC candidate or deployment approval.
 
 ## OPEN FINDINGS / BLOCKERS
 
@@ -35,7 +35,7 @@ FIX-UI-01 software/desktop owner-surface correction is complete in this local ch
 
 ## NEXT
 
-**FIX-UI-02 — APM effective personality display.** Follow HANK_EXECUTION_PLAN.md: establish the real planner-effective signal and any required schema decision before implementation. Do not repeat FIX-UI-01; VERIFY-RC-02 follows both corrections. No push/RC ref/mirror/device action is authorized.
+**FIX-UI-02 / D-026 schema decision.** Accept or revise the concrete [additive planner telemetry proposal](evidence/2026-11-10/fix-ui-02-review/README.md) before production/schema implementation. Native runtime proof: 18 frames, 6 missed overrides, solver status 0, CFG unchanged. Do not repeat source closure or FIX-UI-01. After approval proceed test-first; VERIFY-RC-02 follows both corrections. No push/RC ref/mirror/device action is authorized.
 
 ## Readiness and history
 

@@ -555,3 +555,10 @@ Supersedes the blocked/unavailable and corrective-recovery OPEN rows in the earl
 | FIX-UI-02 / VERIFY-RC-02 | NOT RUN | APM effective signal and full release regression/build remain next stages |
 
 Recovery uses fresh existing vehicle/manager observations and a non-sending socket connect; it restores manual UI eligibility only. Coordinator fresh recheck, failed-state reboot semantics, Params schema, P0 and seven-parameter MPC remain unchanged. No new release approval.
+
+
+## 21. FIX-UI-02 schema review — 2026-11-10
+
+Base `06dc39a512eb08581d0a8b60548b6538bb6de819`. [Read-only baseline probe and pending D-026 contract](docs/hank/evidence/2026-11-10/fix-ui-02-review/README.md): 18 actual planner/native-MPC frames, all status 0, 6 missed Normal/Comfortable overrides in actual HUD expression; CFG unchanged. Diagnostic command exits 1 intentionally. This is not an implementation PASS or rendered UI evidence.
+
+D-026 additive schema proposal is pending user approval. Formal planner→serialized-plan→UI tests, stale/session/Stock Long/restart matrix, unchanged-control evidence, Cereal build and actual UI render are NOT RUN. FIX-UI-02 remains OPEN; VERIFY-RC-02 has not started. No existing PASS is re-run or extended by this review.
