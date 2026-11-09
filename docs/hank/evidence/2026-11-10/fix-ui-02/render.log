@@ -1,0 +1,3 @@
+RAYLIB STATIC 5.5.0.2 LOADED
+Loaded translations for language: en
+{"rendered": {"override": "APM effective override: Aggressive", "cleared": "APM: no override", "off": "APM OFF", "unavailable": "APM status unavailable", "pending": "APM effective override: Aggressive", "engaged": "APM effective override: Aggressive", "multiple-blockers": "APM effective override: Aggressive", "tss": "APM inactive (TSS)", "failed": "APM status unavailable"}, "requests": [], "protected_params": "unchanged"}

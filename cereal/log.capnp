@@ -1254,6 +1254,17 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   shouldStop @37: Bool;
   allowThrottle @38: Bool;
   allowBrake @39: Bool;
+  hankPersonality @40 :HankPersonalityState;
+
+  # Display-only snapshot of the completed planner update (D-026).
+  struct HankPersonalityState {
+    version @0 :UInt8;  # 1; absent/default 0 is unavailable
+    base @1 :LongitudinalPersonality;
+    effective @2 :LongitudinalPersonality;
+    apmEnabled @3 :Bool;
+    applies @4 :Bool;
+    selfdriveStateMonoTime @5 :UInt64;
+  }
 
 
   solverExecutionTime @35 :Float32;

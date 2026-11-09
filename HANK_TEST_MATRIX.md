@@ -562,3 +562,23 @@ Recovery uses fresh existing vehicle/manager observations and a non-sending sock
 Base `06dc39a512eb08581d0a8b60548b6538bb6de819`. [Read-only baseline probe and pending D-026 contract](docs/hank/evidence/2026-11-10/fix-ui-02-review/README.md): 18 actual planner/native-MPC frames, all status 0, 6 missed Normal/Comfortable overrides in actual HUD expression; CFG unchanged. Diagnostic command exits 1 intentionally. This is not an implementation PASS or rendered UI evidence.
 
 D-026 additive schema proposal is pending user approval. Formal planner→serialized-plan→UI tests, stale/session/Stock Long/restart matrix, unchanged-control evidence, Cereal build and actual UI render are NOT RUN. FIX-UI-02 remains OPEN; VERIFY-RC-02 has not started. No existing PASS is re-run or extended by this review.
+
+
+## 22. FIX-UI-02 correction — 2026-11-10
+
+D-026 explicitly approved by user after proposal `b498060`. This supersedes section 21's pending implementation status, preserving its historical failure proof. [Commands/logs/visual evidence](docs/hank/evidence/2026-11-10/fix-ui-02/README.md).
+
+| Gate | Result | Scope |
+|---|---|---|
+| Test-first cross planner/native/serialized/UI contract | EXPECTED FAIL: 2 / 0.35 s | Baseline lacks hankPersonality; no failing-only commit |
+| New D-026 focused suite | PASS: 47 / 2.44 s | Real native MPC; thresholds, modes, Stock Long, restart, v1/v2, validity/freshness/session matrix |
+| Existing owner/CFG/profile and selected longitudinal | PASS: 526 / 26.86 s | No tolerance or control tuning change |
+| After Cereal build: D-026 + owner UI/recovery/wiring | PASS: 131 / 6.84 s | Rechecks affected binary interface/UI; overlaps prior tests |
+| Baseline/current native comparison | PASS: 84 frame pairs | Exact p/W/yref, finite equal v/a/j, status 0, equal output/source |
+| Standard SCons / Cereal generation | PASS: exit 0 / 73.15 s | Two known CasADi 3.7.2 warnings; dependency-driven generated artifacts remain untracked/ignored |
+| Changed-Python Ruff | NO NEW DIAGNOSTICS | Raw exit 1: sole baseline PIE790 at planner:49, exact stdout matches baseline; no cleanup |
+| Actual desktop HUD / prior owner interactions | PASS in tested scope | Nine render states, no APM/button overlap; blocked/recovery/confirmation/reboot interactions retained |
+| Diff check | PASS | Schema/planner telemetry/UI/helper/test + durable evidence only |
+| VERIFY-RC-02 / C3X / vehicle | NOT RUN | Whole release regression, actual device/vehicle and localization remain separate gates |
+
+PARAM_DIM=7, COMFORT_BRAKE=2.5 and D-022 0.09/0.6 bench seed remain unchanged. No coordinator, Toyota/Panda/SecOC source change, no RC ref movement or publication.

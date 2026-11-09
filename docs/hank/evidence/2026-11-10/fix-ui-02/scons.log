@@ -1,0 +1,266 @@
+scons: Reading SConscript files ...
+scons: done reading SConscript files.
+scons: Building targets ...
+capnpc --src-prefix=cereal cereal/log.capnp cereal/car.capnp cereal/legacy.capnp cereal/custom.capnp -o c++:cereal/gen/cpp/
+clang++ -o cereal/gen/cpp/log.capnp.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include cereal/gen/cpp/log.capnp.c++
+clang++ -o common/params.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include common/params.cc
+clang++ -o common/swaglog.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include common/swaglog.cc
+clang++ -o cereal/messaging/socketmaster.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include cereal/messaging/socketmaster.cc
+ar rc cereal/libcereal.a cereal/gen/cpp/log.capnp.o cereal/gen/cpp/car.capnp.o cereal/gen/cpp/legacy.capnp.o cereal/gen/cpp/custom.capnp.o
+ranlib cereal/libcereal.a
+Building compilation database compile_commands.json
+arm-none-eabi-gcc -o panda/board/board/obj/body_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c
+arm-none-eabi-gcc -o panda/board/board/obj/panda_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c
+arm-none-eabi-gcc -o panda/board/board/obj/panda_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/main.c
+arm-none-eabi-gcc -o panda/board/board/obj/panda_jungle_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c
+ar rc cereal/libsocketmaster.a cereal/messaging/socketmaster.o
+ranlib cereal/libsocketmaster.a
+arm-none-eabi-gcc -o panda/board/body/board/obj/body_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/body/main.c
+arm-none-eabi-gcc -o panda/board/jungle/board/obj/panda_jungle_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/jungle/main.c
+arm-none-eabi-gcc -o panda/board/obj/body_h7/bootstub.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB panda/board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o panda/crypto/board/obj/body_h7rsa.o panda/crypto/board/obj/body_h7sha.o panda/board/board/obj/body_h7bootstub.o
+arm-none-eabi-objcopy -O binary panda/board/obj/body_h7/bootstub.elf panda/board/obj/bootstub.body_h7.bin
+arm-none-eabi-gcc -o panda/board/obj/panda_h7/bootstub.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB panda/board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o panda/crypto/board/obj/panda_h7rsa.o panda/crypto/board/obj/panda_h7sha.o panda/board/board/obj/panda_h7bootstub.o
+ar rc common/libcommon.a common/params.o common/swaglog.o common/util.o common/ratekeeper.o common/clutil.o
+ranlib common/libcommon.a
+clang++ -o msgq_repo/msgq/visionipc/visionipc_pyx.so -pthread -shared msgq_repo/msgq/visionipc/visionipc_pyx.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib msgq_repo/libvisionipc.a msgq_repo/libmsgq.a common/libcommon.a -ljson11 -lzmq -lzmq -lOpenCL
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_h7/bootstub.elf panda/board/obj/bootstub.panda_h7.bin
+clang++ -o common/params_pyx.so -pthread -shared common/params_pyx.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib common/libcommon.a -lzmq -ljson11
+arm-none-eabi-gcc -o panda/board/obj/body_h7/main.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g panda/board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o panda/board/body/board/obj/body_h7main.o
+clang++ -o msgq_repo/msgq/ipc_pyx.so -pthread -shared msgq_repo/msgq/ipc_pyx.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib msgq_repo/libmsgq.a -lzmq common/libcommon.a -ljson11 -lzmq
+clang++ -o cereal/messaging/bridge -Wl,--as-needed -Wl,--no-undefined cereal/messaging/bridge.o cereal/messaging/msgq_to_zmq.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib msgq_repo/libmsgq.a common/libcommon.a -ljson11 -lzmq -lpthread
+arm-none-eabi-objcopy -O binary panda/board/obj/body_h7/main.elf panda/board/obj/body_h7/main.bin
+SETLEN=1 panda/crypto/sign.py panda/board/obj/body_h7/main.bin panda/board/obj/body_h7.bin.signed panda/certs/debug
+arm-none-eabi-gcc -o panda/board/obj/panda_jungle_h7/bootstub.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB panda/board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o panda/crypto/board/obj/panda_jungle_h7rsa.o panda/crypto/board/obj/panda_jungle_h7sha.o panda/board/board/obj/panda_jungle_h7bootstub.o
+arm-none-eabi-gcc -o panda/board/obj/panda_h7/main.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g panda/board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o panda/board/board/obj/panda_h7main.o
+arm-none-eabi-gcc -o panda/board/obj/panda_jungle_h7/main.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g panda/board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o panda/board/jungle/board/obj/panda_jungle_h7main.o
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_jungle_h7/bootstub.elf panda/board/obj/bootstub.panda_jungle_h7.bin
+signing 60636 bytes
+hash: 58eb440657c0e76b39ce53ea664b3de31f17729a
+arm-none-eabi-gcc -o panda_tici/board/bootstub-panda.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_jungle_h7/main.elf panda/board/obj/panda_jungle_h7/main.bin
+arm-none-eabi-objcopy -O binary panda/board/obj/panda_h7/main.elf panda/board/obj/panda_h7/main.bin
+arm-none-eabi-gcc -o panda_tici/board/bootstub-panda_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+SETLEN=1 panda/crypto/sign.py panda/board/obj/panda_jungle_h7/main.bin panda/board/obj/panda_jungle_h7.bin.signed panda/certs/debug
+SETLEN=1 panda/crypto/sign.py panda/board/obj/panda_h7/main.bin panda/board/obj/panda_h7.bin.signed panda/certs/debug
+signing 62404 bytes
+hash: 55941d0d6bbff6e67383054acac1f020b383fae4
+arm-none-eabi-gcc -o panda_tici/board/jungle/bootstub-panda_jungle.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+signing 68312 bytes
+hash: 2f2c143b98c377888f27e84a44acd18dc19c2390
+arm-none-eabi-gcc -o panda_tici/board/jungle/bootstub-panda_jungle_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/bootstub.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/main-panda_jungle.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/jungle/main.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/main-panda_jungle_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board/jungle -Ipanda_tici/board -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/jungle/main.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/bootstub.panda_jungle.elf -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle.o panda_tici/board/jungle/rsa-panda_jungle.o panda_tici/board/jungle/sha-panda_jungle.o panda_tici/board/jungle/bootstub-panda_jungle.o
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/bootstub.panda_jungle_h7.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle_h7.o panda_tici/board/jungle/rsa-panda_jungle_h7.o panda_tici/board/jungle/sha-panda_jungle_h7.o panda_tici/board/jungle/bootstub-panda_jungle_h7.o
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/bootstub.panda_jungle.elf panda_tici/board/jungle/obj/bootstub.panda_jungle.bin
+arm-none-eabi-gcc -o panda_tici/board/main-panda.o -c -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/main.c
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/bootstub.panda_jungle_h7.elf panda_tici/board/jungle/obj/bootstub.panda_jungle_h7.bin
+arm-none-eabi-gcc -o panda_tici/board/main-panda_h7.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld -Ipanda_tici/board -Ipanda_tici -Ipanda_tici -Ipanda_tici/board -Iopendbc_repo panda_tici/board/main.c
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/panda_jungle.elf -Wl,--section-start,.isr_vector=0x8004000 -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle.o panda_tici/board/jungle/main-panda_jungle.o
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/panda_jungle.elf panda_tici/board/jungle/obj/panda_jungle.bin
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/jungle/obj/panda_jungle.bin panda_tici/board/jungle/obj/panda_jungle.bin.signed panda_tici/certs/debug
+arm-none-eabi-gcc -o panda_tici/board/jungle/obj/panda_jungle_h7.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/jungle/obj/startup_panda_jungle_h7.o panda_tici/board/jungle/main-panda_jungle_h7.o
+signing 56892 bytes
+hash: 1f9dd0e3162472897f93bbb5d53566bde10a2084
+arm-none-eabi-gcc -o panda_tici/board/obj/bootstub.panda.elf -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/obj/startup_panda.o panda_tici/board/rsa-panda.o panda_tici/board/sha-panda.o panda_tici/board/bootstub-panda.o
+arm-none-eabi-objcopy -O binary panda_tici/board/jungle/obj/panda_jungle_h7.elf panda_tici/board/jungle/obj/panda_jungle_h7.bin
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/jungle/obj/panda_jungle_h7.bin panda_tici/board/jungle/obj/panda_jungle_h7.bin.signed panda_tici/certs/debug
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/bootstub.panda.elf panda_tici/board/obj/bootstub.panda.bin
+arm-none-eabi-gcc -o panda_tici/board/obj/bootstub.panda_h7.elf -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/obj/startup_panda_h7.o panda_tici/board/rsa-panda_h7.o panda_tici/board/sha-panda_h7.o panda_tici/board/bootstub-panda_h7.o
+arm-none-eabi-gcc -o panda_tici/board/obj/panda.elf -Wl,--section-start,.isr_vector=0x8004000 -mcpu=cortex-m4 -mhard-float -DSTM32F4 -DSTM32F413xx -Iboard/stm32f4/inc -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Os -g -DPANDA -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32f4/stm32f4_flash.ld panda_tici/board/obj/startup_panda.o panda_tici/board/main-panda.o
+signing 60584 bytes
+hash: 947dde37896abc21ee442c737eb4f952f9442e57
+clang++ -o rednose/helpers/ekf_sym_pyx.so -pthread -shared rednose/helpers/ekf_sym_pyx.o rednose/helpers/ekf_load.os rednose/helpers/ekf_sym.os -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib -ldl common/libcommon.a -ljson11 -lzmq -lzmq
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/panda.elf panda_tici/board/obj/panda.bin
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/bootstub.panda_h7.elf panda_tici/board/obj/bootstub.panda_h7.bin
+Retrieved `selfdrive/assets/fonts/Inter-Black.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Black.png' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Bold.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Bold.png' from cache
+Retrieved `selfdrive/assets/fonts/Inter-ExtraBold.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-ExtraBold.png' from cache
+Retrieved `selfdrive/assets/fonts/Inter-ExtraLight.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-ExtraLight.png' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Light.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Light.png' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Medium.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Medium.png' from cache
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/obj/panda.bin panda_tici/board/obj/panda.bin.signed panda_tici/certs/debug
+Retrieved `selfdrive/assets/fonts/Inter-Regular.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Regular.png' from cache
+Retrieved `selfdrive/assets/fonts/Inter-SemiBold.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-SemiBold.png' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Thin.fnt' from cache
+Retrieved `selfdrive/assets/fonts/Inter-Thin.png' from cache
+Retrieved `selfdrive/assets/fonts/JetBrainsMono-Medium.fnt' from cache
+Retrieved `selfdrive/assets/fonts/JetBrainsMono-Medium.png' from cache
+python3 /home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/process.py
+RAYLIB STATIC 5.5.0.2 LOADED
+arm-none-eabi-gcc -o panda_tici/board/obj/panda_h7.elf -Wl,--section-start,.isr_vector=0x8020000 -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -fsingle-precision-constant -Os -g -DPANDA -DENABLE_SPI -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda_tici/board/stm32h7/stm32h7x5_flash.ld panda_tici/board/obj/startup_panda_h7.o panda_tici/board/main-panda_h7.o
+signing 59740 bytes
+hash: 5e7c6ba802916893896f67b4ca56cd7044202173
+cd /home/hank/src/dp-sienna-0103/selfdrive/controls/lib/lateral_mpc_lib && python3 lat_mpc.py
+clang++ -o selfdrive/pandad/pandad_api_impl.o -c -std=c++1z -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -I/usr/include/python3.12 -I.venv/lib/python3.12/site-packages/numpy/_core/include selfdrive/pandad/pandad_api_impl.cpp
+arm-none-eabi-objcopy -O binary panda_tici/board/obj/panda_h7.elf panda_tici/board/obj/panda_h7.bin
+SETLEN=1 panda_tici/crypto/sign.py panda_tici/board/obj/panda_h7.bin panda_tici/board/obj/panda_h7.bin.signed panda_tici/certs/debug
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Black.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Black.png] Image exported successfully
+signing 68504 bytes
+hash: fb137b99b030e59b756a5295a4d8f5f77389db80
+clang++ -o selfdrive/pandad/can_list_to_can_capnp.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include selfdrive/pandad/can_list_to_can_capnp.cc
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Bold.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Bold.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraBold.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraBold.png] Image exported successfully
+Warning: Please note that the following versions of CasADi  are officially supported: 3.5.6 or 3.5.5 or 3.5.4 or 3.5.3 or 3.5.2 or 3.5.1 or 3.4.5 or 3.4.0.
+ If there is an incompatibility with the CasADi generated code, please consider changing your CasADi version.
+Version 3.7.2 currently in use.
+clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.o -c -std=gnu11 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -I/usr/include/python3.12 -I.venv/lib/python3.12/site-packages/numpy/_core/include selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.c
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraLight.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-ExtraLight.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Light.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Light.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Medium.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Medium.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Regular.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Regular.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-SemiBold.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-SemiBold.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Thin.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/Inter-Thin.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/JetBrainsMono-Medium.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/JetBrainsMono-Medium.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-th.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHT.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ko.png] Image exported successfully
+ar rc selfdrive/pandad/libcan_list_to_can_capnp.a selfdrive/pandad/can_list_to_can_capnp.o
+ranlib selfdrive/pandad/libcan_list_to_can_capnp.a
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Bold-ja.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-th.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHT.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ko.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Medium-ja.png] Image exported successfully
+clang++ -o selfdrive/modeld/models/commonmodel_pyx.so -pthread -shared selfdrive/modeld/models/commonmodel_pyx.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib selfdrive/modeld/libcommonmodel.a cereal/libcereal.a cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj msgq_repo/libvisionipc.a common/libcommon.a -ljson11 -lzmq -lcapnp -lkj -lpthread -lOpenCL
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-th.png] Image exported successfully
+clang++ -o selfdrive/pandad/pandad_api_impl.so -pthread -shared selfdrive/pandad/pandad_api_impl.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib -lcan_list_to_can_capnp -lcapnp -lkj
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHT.png] Image exported successfully
+cd /home/hank/src/dp-sienna-0103/selfdrive/controls/lib/longitudinal_mpc_lib && python3 long_mpc.py
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ko.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-Regular-ja.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-Labels.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-Labels.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-th.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-th.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHT.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHT.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHS.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-zh-CHS.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ko.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ko.png] Image exported successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ja.png] File saved successfully
+INFO: FILEIO: [/home/hank/src/dp-sienna-0103/selfdrive/assets/fonts/OpFont-SemiBold-ja.png] Image exported successfully
+Processing Inter-Black.ttf -> Inter-Black (274 glyphs @ 200px)...
+Processing Inter-Bold.ttf -> Inter-Bold (274 glyphs @ 200px)...
+Processing Inter-ExtraBold.ttf -> Inter-ExtraBold (274 glyphs @ 200px)...
+Processing Inter-ExtraLight.ttf -> Inter-ExtraLight (274 glyphs @ 200px)...
+Processing Inter-Light.ttf -> Inter-Light (274 glyphs @ 200px)...
+Processing Inter-Medium.ttf -> Inter-Medium (274 glyphs @ 200px)...
+Processing Inter-Regular.ttf -> Inter-Regular (274 glyphs @ 200px)...
+Processing Inter-SemiBold.ttf -> Inter-SemiBold (274 glyphs @ 200px)...
+Processing Inter-Thin.ttf -> Inter-Thin (274 glyphs @ 200px)...
+Processing JetBrainsMono-Medium.ttf -> JetBrainsMono-Medium (274 glyphs @ 200px)...
+Processing OpFont-Bold.otf -> OpFont-Bold-Labels (152 glyphs @ 48px)...
+Processing OpFont-Bold.otf -> OpFont-Bold-th (274 glyphs @ 48px)...
+using font size for line height OpFont-Bold-th.png
+Processing OpFont-Bold.otf -> OpFont-Bold-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-Bold-zh-CHT.png
+Processing OpFont-Bold.otf -> OpFont-Bold-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-Bold-zh-CHS.png
+Processing OpFont-Bold.otf -> OpFont-Bold-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-Bold-ko.png
+Processing OpFont-Bold.otf -> OpFont-Bold-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-Bold-ja.png
+Processing OpFont-Medium.otf -> OpFont-Medium-Labels (152 glyphs @ 48px)...
+Processing OpFont-Medium.otf -> OpFont-Medium-th (274 glyphs @ 48px)...
+using font size for line height OpFont-Medium-th.png
+Processing OpFont-Medium.otf -> OpFont-Medium-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-Medium-zh-CHT.png
+Processing OpFont-Medium.otf -> OpFont-Medium-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-Medium-zh-CHS.png
+Processing OpFont-Medium.otf -> OpFont-Medium-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-Medium-ko.png
+Processing OpFont-Medium.otf -> OpFont-Medium-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-Medium-ja.png
+Processing OpFont-Regular.otf -> OpFont-Regular-Labels (152 glyphs @ 48px)...
+Processing OpFont-Regular.otf -> OpFont-Regular-th (274 glyphs @ 48px)...
+using font size for line height OpFont-Regular-th.png
+Processing OpFont-Regular.otf -> OpFont-Regular-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-Regular-zh-CHT.png
+Processing OpFont-Regular.otf -> OpFont-Regular-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-Regular-zh-CHS.png
+Processing OpFont-Regular.otf -> OpFont-Regular-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-Regular-ko.png
+Processing OpFont-Regular.otf -> OpFont-Regular-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-Regular-ja.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-Labels (152 glyphs @ 48px)...
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-th (274 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-th.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-zh-CHT (722 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-zh-CHT.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-zh-CHS (723 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-zh-CHS.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-ko (607 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-ko.png
+Processing OpFont-SemiBold.otf -> OpFont-SemiBold-ja (668 glyphs @ 48px)...
+using font size for line height OpFont-SemiBold-ja.png
+Warning: Please note that the following versions of CasADi  are officially supported: 3.5.6 or 3.5.5 or 3.5.4 or 3.5.3 or 3.5.2 or 3.5.1 or 3.4.5 or 3.4.0.
+ If there is an incompatibility with the CasADi generated code, please consider changing your CasADi version.
+Version 3.7.2 currently in use.
+clang++ -o selfdrive/pandad/panda.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include selfdrive/pandad/panda.cc
+clang++ -o selfdrive/pandad/panda_comms.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include selfdrive/pandad/panda_comms.cc
+clang++ -o selfdrive/pandad/main.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include selfdrive/pandad/main.cc
+clang++ -o selfdrive/pandad/panda_safety.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include selfdrive/pandad/panda_safety.cc
+clang++ -o selfdrive/pandad/pandad.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include selfdrive/pandad/pandad.cc
+clang++ -o system/loggerd/bootlog.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/bootlog.cc
+clang++ -o system/loggerd/logger.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/logger.cc
+ar rc selfdrive/pandad/libpanda.a selfdrive/pandad/panda.o selfdrive/pandad/panda_comms.o selfdrive/pandad/spi.o
+ranlib selfdrive/pandad/libpanda.a
+clang++ -o system/loggerd/video_writer.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/video_writer.cc
+clang++ -o system/loggerd/encoder/encoder.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/encoder/encoder.cc
+clang++ -o system/loggerd/encoder/v4l_encoder.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/encoder/v4l_encoder.cc
+clang++ -o system/loggerd/encoder/jpeg_encoder.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/encoder/jpeg_encoder.cc
+clang++ -o selfdrive/pandad/pandad -Wl,--as-needed -Wl,--no-undefined selfdrive/pandad/main.o selfdrive/pandad/pandad.o selfdrive/pandad/panda_safety.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib selfdrive/pandad/libpanda.a -lusb-1.0 common/libcommon.a -ljson11 -lzmq cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj -lpthread
+clang++ -o system/loggerd/encoder/ffmpeg_encoder.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/encoder/ffmpeg_encoder.cc
+clang++ -o system/loggerd/encoderd.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/encoderd.cc
+clang++ -o system/loggerd/loggerd.o -c -std=c++1z -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include system/loggerd/loggerd.cc
+ar rc system/loggerd/liblogger.a system/loggerd/logger.o system/loggerd/zstd_writer.o system/loggerd/video_writer.o system/loggerd/encoder/encoder.o system/loggerd/encoder/v4l_encoder.o system/loggerd/encoder/jpeg_encoder.o system/loggerd/encoder/ffmpeg_encoder.o
+ranlib system/loggerd/liblogger.a
+clang++ -o system/loggerd/bootlog -Wl,--as-needed -Wl,--no-undefined system/loggerd/bootlog.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib system/loggerd/liblogger.a common/libcommon.a -ljson11 -lzmq cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj msgq_repo/libvisionipc.a -lavformat -lavcodec -lavutil -lyuv -lOpenCL -lpthread -lzstd
+clang++ -o system/loggerd/encoderd -Wl,--as-needed -Wl,--no-undefined system/loggerd/encoderd.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib system/loggerd/liblogger.a common/libcommon.a -ljson11 -lzmq cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj msgq_repo/libvisionipc.a -lavformat -lavcodec -lavutil -lyuv -lOpenCL -lpthread -lzstd -ljpeg
+clang++ -o system/loggerd/loggerd -Wl,--as-needed -Wl,--no-undefined system/loggerd/loggerd.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/x86_64/lib -Lthird_party/acados/x86_64/lib -L/usr/lib -L/usr/local/lib system/loggerd/liblogger.a common/libcommon.a -ljson11 -lzmq cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj msgq_repo/libvisionipc.a -lavformat -lavcodec -lavutil -lyuv -lOpenCL -lpthread -lzstd
+scons: done building targets.
+ELAPSED=73.15 EXIT=0

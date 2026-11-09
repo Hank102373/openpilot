@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from openpilot.common.constants import CV
 from openpilot.selfdrive.ui.onroad.exp_button import ExpButton
 from openpilot.selfdrive.ui.hank_owner import HankOwnerUIModel, owner_ui_evidence
-from openpilot.selfdrive.ui.hank_profile import HankProfileUIModel
+from openpilot.selfdrive.ui.hank_profile import HankProfileUIModel, personality_status
 from openpilot.selfdrive.ui.reboot import show_reboot_confirmation
-from openpilot.selfdrive.controls.lib.hank_config import ACTIVE, HankConfigV2, ReadState, base_personality, read_config
+from openpilot.selfdrive.controls.lib.hank_config import ACTIVE, HankConfigV2, ReadState, read_config
 from openpilot.system.ui.widgets.button import Button, ButtonStyle
 from openpilot.common.params import Params
 from openpilot.selfdrive.ui.ui_state import ui_state, UIStatus
@@ -180,7 +180,7 @@ class HudRenderer(Widget):
     state = self._hank_profile.state(has_long)
     x = rect.x + rect.width - 790
     y = rect.y + 270
-    panel = rl.Rectangle(x, y, 760, 390 if owner_state.reboot_available else 330 if owner_state.visible else 225)
+    panel = rl.Rectangle(x, y, 760, 425 if owner_state.reboot_available else 365 if owner_state.visible else 260)
     rl.draw_rectangle_rounded(panel, 0.12, 8, COLORS.BLACK_TRANSLUCENT)
     rl.draw_rectangle_rounded_lines_ex(panel, 0.12, 8, 2, COLORS.BORDER_TRANSLUCENT)
     if owner_state.visible:
@@ -196,9 +196,6 @@ class HudRenderer(Widget):
     if profile is not None:
       rl.draw_text_ex(self._font_medium, profile, rl.Vector2(x + 18, y + 52), 29, 0, COLORS.WHITE)
     active_config = read_config(self._hank_profile.params, ACTIVE)
-    apm_override = (owner_state.hank_profile_active and active_config.state == ReadState.VALID
-                    and isinstance(active_config.value, HankConfigV2)
-                    and ui_state.sm["selfdriveState"].personality != base_personality(active_config.value))
     profile_detail = (self._hank_error or state.error or
                       ("Pending: next onroad session" if state.pending else "Current session profile"))
     if owner_state.visible and not owner_state.action_enabled:
@@ -207,8 +204,6 @@ class HudRenderer(Widget):
       detail = profile_detail
       if active_config.state == ReadState.VALID and isinstance(active_config.value, HankConfigV2):
         detail += f" | Dynamic Follow: {'On' if active_config.value.dynamic_follow else 'Off'}"
-      if apm_override:
-        detail += " | APM effective override"
     elif owner_state.visible:
       detail = owner_state.detail
     else:
@@ -224,7 +219,11 @@ class HudRenderer(Widget):
     for index, line in enumerate(detail_lines):
       rl.draw_text_ex(self._font_medium, line, rl.Vector2(x + 18, detail_y + index * detail_size), detail_size, 0,
                      COLORS.ENGAGED if state.pending else COLORS.WHITE)
-    button_y = y + (195 if owner_state.reboot_available else 135 if owner_state.visible else 118)
+    apm_text = personality_status(self._params, ui_state.sm, owner_state.hank_profile_active,
+                                  owner_state.current_owner == "TSS", int(ui_state.started_time * 1e9) if ui_state.started else 0)
+    apm_y = max(detail_y + len(detail_lines) * detail_size + 5, y + (162 if owner_state.reboot_available else 127 if owner_state.visible else 98))
+    rl.draw_text_ex(self._font_medium, apm_text, rl.Vector2(x + 18, apm_y), 25, 0, COLORS.WHITE)
+    button_y = y + (230 if owner_state.reboot_available else 170 if owner_state.visible else 153)
     for index, button in enumerate(self._hank_buttons):
       button.set_enabled((owner_state.hank_profile_active if owner_state.visible else has_long)
                          and state.hank_controls_longitudinal)
@@ -232,7 +231,7 @@ class HudRenderer(Widget):
     if owner_state.visible:
       self._owner_button.set_text("Reboot C3X" if owner_state.reboot_available else owner_state.action_label)
       self._owner_button.set_enabled(owner_state.action_enabled or owner_state.reboot_available)
-      self._owner_button.render(rl.Rectangle(x + 18, y + (295 if owner_state.reboot_available else 235), 724, 75))
+      self._owner_button.render(rl.Rectangle(x + 18, y + (330 if owner_state.reboot_available else 270), 724, 75))
 
   def _draw_set_speed(self, rect: rl.Rectangle) -> None:
     """Draw the MAX speed indicator box."""

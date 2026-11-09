@@ -181,3 +181,12 @@ Fresh safe vehicle/manager timestamps and non-sending coordinator socket availab
 ## FIX-UI-02 review checkpoint — 2026-11-10
 
 Base `06dc39a512eb08581d0a8b60548b6538bb6de819`, clean verified WSL tree. Read-only source inventory and native planner/HUD-expression evidence completed: 18 frames, 6 expected mismatches, CFG unchanged. No usable existing non-deprecated effective-personality publication. [D-026 exact additive schema proposal and tests](evidence/2026-11-10/fix-ui-02-review/README.md) prepared; pending user approval before production/Cereal edits. This is a docs/evidence checkpoint only, not FIX-UI-02 PASS. Resume with schema decision, then test-first implementation. No build/push/device action or RC1 ref change.
+
+
+## 2026-11-10 — FIX-UI-02 local implementation checkpoint
+
+Base `b4980601b8cdbce109b5f8b46cf3d0200670d4bc`; branch `hank/implementation-v1`, clean initial precheck. D-026 proposal explicitly approved by user (「核准，繼續往下」). [Detailed reproducible evidence](evidence/2026-11-10/fix-ui-02/README.md).
+
+Test-first 2 expected failures; final new suite 47 passed, existing selected regression 526 passed, post-build affected suites 131 passed. Actual planner/native comparison: 84 paired frames with exact p/W/yref and native output equality. SCons exit 0 / 73.15 s; only known CasADi compatibility warnings. Raw Ruff exit 1 equals baseline PIE790 exactly, zero new diagnostics. Actual desktop HUD states plus prior owner mouse/confirmation recovery probe pass; diff check passes. No failing test or generated solver file committed.
+
+Runtime scope: additive Cereal field, planner display snapshot, shared UI validator and HUD. Test scope: new deterministic planner-to-UI suite. No control algorithm/CFG ownership/owner coordinator/Toyota/Panda/SecOC/solver source changes. Build uses normal Cereal and dependency-driven code generation; no manual solver regeneration. Local checkpoint only, no push/device action, immutable RC1 unchanged. Rollback is this logical unit's code/schema/docs together; never overwrite RC1. Current NEXT lives only in CURRENT_STATE: VERIFY-RC-02, not a deployment permission.

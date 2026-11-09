@@ -1,9 +1,10 @@
 """UI-01 presentation and actions over the versioned HANK config authority."""
 from dataclasses import dataclass
+import time
 
 from openpilot.selfdrive.controls.lib.hank_config import (HankConfigV2, ReadState, read_config, read_latch,
                                                           save_profile, cycle_requested_profile, set_requested_dynamic_follow, restore_original,
-                                                          REQUESTED, ACTIVE)
+                                                          REQUESTED, ACTIVE, base_personality)
 
 
 PROFILE_LABELS = {"compact": "緊湊", "normal": "一般", "comfortable": "舒適", "original": "Original"}
@@ -60,3 +61,38 @@ class HankProfileUIModel:
       hank_controls_longitudinal=openpilot_longitudinal_control and active_valid,
       error=error,
     )
+
+
+def personality_status(params, sm, hank_active: bool, stock_long: bool, session_ns: int, now_ns: int | None = None) -> str:
+  """Present observed planner state, never infer APM hysteresis from speed or Params."""
+  if stock_long:
+    return "APM inactive (TSS)"
+  unavailable = "APM status unavailable"
+  if not hank_active or session_ns <= 0:
+    return unavailable
+  active, latch = read_config(params, ACTIVE), read_latch(params)
+  if active.state != ReadState.VALID or latch.state != ReadState.VALID:
+    return unavailable
+  now_ns = time.monotonic_ns() if now_ns is None else now_ns
+  try:
+    if not sm.seen["longitudinalPlan"] or not sm.valid["longitudinalPlan"]:
+      return unavailable
+    plan = sm["longitudinalPlan"]
+    telemetry = plan.hankPersonality
+    if telemetry.version != 1 or not telemetry.applies:
+      return unavailable
+    stamps = (sm.logMonoTime["longitudinalPlan"], plan.modelMonoTime, telemetry.selfdriveStateMonoTime)
+    if any(stamp <= 0 or stamp < session_ns or not 0 <= now_ns - stamp <= 500_000_000 for stamp in stamps):
+      return unavailable
+    base, effective = telemetry.base.raw, telemetry.effective.raw
+    if base not in (0, 1, 2) or effective not in (0, 1, 2):
+      return unavailable
+    if isinstance(active.value, HankConfigV2) and base != int(base_personality(active.value)):
+      return unavailable
+    if not telemetry.apmEnabled:
+      return "APM OFF" if base == effective else unavailable
+    names = {0: "Aggressive", 1: "Standard", 2: "Relaxed"}
+    return f"APM effective override: {names[effective]}" if effective != base else "APM: no override"
+  except (AttributeError, KeyError, TypeError, ValueError):
+    # Old/absent observations never imply enum-default Aggressive or APM OFF.
+    return unavailable

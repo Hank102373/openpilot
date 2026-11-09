@@ -9,7 +9,7 @@ Updated: 2026-11-10. Execution authority: [HANK_EXECUTION_PLAN.md](../../HANK_EX
 - Audited runtime baseline / immutable RC1: `b35a4c1bdbe83468690935cf08d6c3e8d0174855`.
 - On 2026-11-10, origin implementation and RC1 branch/tag, plus the c3x-mirror flat RC1 branch/tag, resolve to that SHA. This is a timestamped remote observation, not a guarantee about future refs.
 - Mirror default HEAD is `tn-2025-11v1` at `e0231f076c09c30e40a275a49359100c2b367f8d`; explicitly select the approved RC and verify SHA.
-- Plan checkpoint: `fb25d6c385e0373da9410a5b005555cfdfdc5e12`. This continuation adds the local FIX-UI-01 checkpoint; use `git log` for its SHA. Origin remains at RC1; no publication is authorized.
+- Plan checkpoint: `fb25d6c385e0373da9410a5b005555cfdfdc5e12`. Local FIX-UI-01 is `06dc39a512eb08581d0a8b60548b6538bb6de819`; D-026 proposal is `b4980601b8cdbce109b5f8b46cf3d0200670d4bc`. This continuation adds FIX-UI-02; use `git log` for its implementation SHA. Origin remains at RC1; no publication is authorized.
 
 ## COMPLETED
 
@@ -21,21 +21,23 @@ Updated: 2026-11-10. Execution authority: [HANK_EXECUTION_PLAN.md](../../HANK_EX
 
 - FIX-UI-01: owner blocked/unavailable actions disabled; fresh safe observations restore manual confirmation only. Existing coordinator protocol/state machine unchanged. Test-first 4 expected failures; final owner/service/coordinator/CFG/profile suites 342 passed in 34.02 s; final affected UI suites 84 passed in 3.66 s; changed-source/test Ruff and diff check pass. Actual desktop owner HUD/settings/dialog render and mouse-interaction probe passed. See [reproducible evidence](evidence/2026-11-10/fix-ui-01/README.md).
 
+- FIX-UI-02 / D-026: explicitly approved schema implemented; planner publishes actual completed-update base/effective/APM telemetry, HUD validates freshness/session/authority and displays override/unavailable/inactive. New suite 47 passed; existing selected regression 526 passed; post-build affected suites 131 passed; 84 baseline/current native frame pairs exactly equal; SCons exit 0 in 73.15 s. Nine actual desktop HUD states and existing owner interaction probe pass. Ruff has only exact baseline PIE790. [Evidence](evidence/2026-11-10/fix-ui-02/README.md).
+
 ## IN PROGRESS
 
-FIX-UI-01 software/desktop owner-surface correction is complete in this local checkpoint. FIX-UI-02 source/runtime review is complete; D-026 additive telemetry proposal awaits user schema approval. Implementation and VERIFY-RC-02 have not started. No new RC candidate or deployment approval.
+FIX-UI-01 and FIX-UI-02 software/desktop corrections are complete locally. VERIFY-RC-02 has not started. No new RC candidate or deployment approval.
 
 ## OPEN FINDINGS / BLOCKERS
 
 - FIX-UI-01 corrected at software/desktop scope. C3X timing, real service load, language/font and full-app visual acceptance remain unvalidated. English-font desktop probe renders existing Chinese profile labels as `??`; do not count that as localization acceptance.
-- FIX-UI-02: HUD APM override compares published base personality with active base; actual planner effective personality is not that signal. Source review and an APM runtime probe establish the data-flow mismatch, not a rendered UI acceptance.
+- FIX-UI-02 data-flow defect corrected at software/desktop scope. Telemetry age bound is 0.5 seconds, not instantaneous crash detection. Full-app/all-language/C3X timing remains unvalidated.
 - No dedicated HANK CI gate demonstrated. Actual desktop owner-widget visual/interaction evidence now exists; it does not establish full-app, all-language or C3X acceptance.
 - C3X install/boot/runtime, stationary Sienna ownership/SecOC/CAN/rollback, physical gap, V1-V3 and release approval remain unvalidated.
 - D-022 gain/cap `0.09/0.6 m` remain C3X BENCH SEED ONLY, not product defaults. Current accepted MPC dimension is 7 and COMFORT_BRAKE is 2.5.
 
 ## NEXT
 
-**FIX-UI-02 / D-026 schema decision.** Accept or revise the concrete [additive planner telemetry proposal](evidence/2026-11-10/fix-ui-02-review/README.md) before production/schema implementation. Native runtime proof: 18 frames, 6 missed overrides, solver status 0, CFG unchanged. Do not repeat source closure or FIX-UI-01. After approval proceed test-first; VERIFY-RC-02 follows both corrections. No push/RC ref/mirror/device action is authorized.
+**VERIFY-RC-02.** Run the execution plan's whole corrective-release regression/build/native diagnostic and protected-scope audit on the committed FIX-UI-01/02 state. Do not repeat implementation or D-026 closure. Preserve immutable RC1. Only propose a new candidate after those gates; no push/RC ref/mirror/device action is authorized.
 
 ## Readiness and history
 

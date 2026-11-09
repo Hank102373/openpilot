@@ -95,6 +95,7 @@ class LongitudinalPlanner:
     self.aem = AEM()
     self.dtsc = DTSC(aggressiveness=0.8)
     self.apm = APM()
+    self._personality_snapshot = None
     self.dasr = DASR()
 
     # dp: maa turn speed helper
@@ -125,6 +126,7 @@ class LongitudinalPlanner:
     return x, v, a, j, throttle_prob
 
   def update(self, sm, dp_flags = 0):
+    self._personality_snapshot = None
     mode = 'blended' if sm['selfdriveState'].experimentalMode else 'acc'
 
     if dp_flags & DPFlags.AEM:
@@ -191,7 +193,8 @@ class LongitudinalPlanner:
     if force_slow_decel:
       v_cruise = 0.0
 
-    personality = sm['selfdriveState'].personality
+    base_personality = sm['selfdriveState'].personality
+    personality = base_personality
     if dp_flags & DPFlags.APM:
       personality = self.apm.get_personality(v_ego, personality)
 
@@ -262,6 +265,15 @@ class LongitudinalPlanner:
       accel_clip[idx] = np.clip(accel_clip[idx], self.prev_accel_clip[idx] - self.dasr.slew_rate, self.prev_accel_clip[idx] + self.dasr.slew_rate)
     self.output_a_target = np.clip(output_a_target, accel_clip[0], accel_clip[1])
     self.prev_accel_clip = accel_clip
+    # Capture the same effective value used by both MPC calls, without rerunning APM.
+    self._personality_snapshot = {
+      "version": 1,
+      "base": getattr(base_personality, "raw", base_personality),
+      "effective": getattr(personality, "raw", personality),
+      "apmEnabled": bool(dp_flags & DPFlags.APM),
+      "applies": bool(self.CP.openpilotLongitudinalControl),
+      "selfdriveStateMonoTime": getattr(sm, "logMonoTime", {}).get("selfdriveState", 0),
+    }
 
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
@@ -269,6 +281,8 @@ class LongitudinalPlanner:
     plan_send.valid = sm.all_checks(service_list=['carState', 'controlsState', 'selfdriveState', 'radarState'])
 
     longitudinalPlan = plan_send.longitudinalPlan
+    if self._personality_snapshot is not None:
+      longitudinalPlan.hankPersonality = self._personality_snapshot
     longitudinalPlan.modelMonoTime = sm.logMonoTime['modelV2']
     longitudinalPlan.processingDelay = (plan_send.logMonoTime / 1e9) - sm.logMonoTime['modelV2']
     longitudinalPlan.solverExecutionTime = self.mpc.solve_time

@@ -1,0 +1,3 @@
+RAYLIB STATIC 5.5.0.2 LOADED
+Loaded translations for language: en
+{"surfaces": ["actual HudRenderer panel", "actual TogglesLayout owner items", "actual ConfirmDialog"], "blocked_clicks": "no dialog/request", "safe_recovery": "manual actions enabled", "confirmation_changed": "no request", "timeout_recovery": "fresh data, no automatic retry", "protected_params": "unchanged", "requests": []}

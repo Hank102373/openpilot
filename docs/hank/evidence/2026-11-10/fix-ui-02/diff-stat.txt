@@ -1,0 +1,33 @@
+Staged scope before adding this stat record (record itself excluded):
+ HANK_DECISION_LOG.md                               |   8 +-
+ HANK_INTEGRATION_SPEC.md                           |  11 +
+ HANK_TEST_MATRIX.md                                |  20 ++
+ cereal/log.capnp                                   |  11 +
+ docs/hank/CURRENT_STATE.md                         |  10 +-
+ docs/hank/IMPLEMENTATION_CHECKPOINT.md             |   9 +
+ docs/hank/evidence/2026-11-10/fix-ui-02/README.md  | 102 ++++++++
+ .../evidence/2026-11-10/fix-ui-02/baseline.log     |  50 ++++
+ .../hank/evidence/2026-11-10/fix-ui-02/compare.log |   1 +
+ .../2026-11-10/fix-ui-02/compare_control.py        |  62 +++++
+ .../hank/evidence/2026-11-10/fix-ui-02/focused.log |   2 +
+ .../evidence/2026-11-10/fix-ui-02/hud-cleared.png  | Bin 0 -> 120293 bytes
+ .../evidence/2026-11-10/fix-ui-02/hud-engaged.png  | Bin 0 -> 123022 bytes
+ .../evidence/2026-11-10/fix-ui-02/hud-failed.png   | Bin 0 -> 124393 bytes
+ .../2026-11-10/fix-ui-02/hud-multiple-blockers.png | Bin 0 -> 124502 bytes
+ .../hank/evidence/2026-11-10/fix-ui-02/hud-off.png | Bin 0 -> 119126 bytes
+ .../evidence/2026-11-10/fix-ui-02/hud-override.png | Bin 0 -> 123322 bytes
+ .../evidence/2026-11-10/fix-ui-02/hud-pending.png  | Bin 0 -> 125735 bytes
+ .../hank/evidence/2026-11-10/fix-ui-02/hud-tss.png | Bin 0 -> 122822 bytes
+ .../2026-11-10/fix-ui-02/hud-unavailable.png       | Bin 0 -> 121154 bytes
+ .../2026-11-10/fix-ui-02/owner-interaction.log     |   3 +
+ .../evidence/2026-11-10/fix-ui-02/post-build.log   |   3 +
+ .../evidence/2026-11-10/fix-ui-02/regression.log   |   9 +
+ docs/hank/evidence/2026-11-10/fix-ui-02/render.log |   3 +
+ .../evidence/2026-11-10/fix-ui-02/render_probe.py  | 103 ++++++++
+ docs/hank/evidence/2026-11-10/fix-ui-02/ruff.log   |  34 +++
+ docs/hank/evidence/2026-11-10/fix-ui-02/scons.log  | 266 +++++++++++++++++++++
+ selfdrive/controls/lib/longitudinal_planner.py     |  16 +-
+ selfdrive/ui/hank_profile.py                       |  38 ++-
+ selfdrive/ui/onroad/hud_renderer.py                |  19 +-
+ selfdrive/ui/tests/test_hank_personality.py        | 236 ++++++++++++++++++
+ 31 files changed, 996 insertions(+), 20 deletions(-)

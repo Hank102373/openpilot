@@ -952,13 +952,13 @@ Supersedes:
 Never delete an old decision because it later became wrong. Mark it **Superseded** and add the replacement decision so the history remains auditable.
 
 
-## D-026 — Planner-effective personality display telemetry (proposal)
+## D-026 — Planner-effective personality display telemetry
 
-**Status:** PROPOSED — PENDING USER SCHEMA APPROVAL; not implementation authority.
+**Status:** ACCEPTED_FOR_IMPLEMENTATION — user approved on 2026-11-10 (「核准，繼續往下」).
 **Date:** 2026-11-10
 
 FIX-UI-02 review at `06dc39a512eb08581d0a8b60548b6538bb6de819` found no valid existing published effective personality. Real planner/native MPC plus actual HUD-expression probe reproduced 6 missing overrides in 18 frames, without CFG changes. D-023 remains authoritative for base/Requested/Active and APM ownership.
 
-Propose additive `LongitudinalPlan.hankPersonality @40 :HankPersonalityState` containing version UInt8, base/effective LongitudinalPersonality, apmEnabled Bool, applies Bool and selfdriveStateMonoTime UInt64 (nested ordinals 0..5). Existing Event timestamp and modelMonoTime provide remaining freshness evidence. Absent/version-zero metadata means unavailable. Sole producer is planner; sole purpose is display; no control algorithms change. UI requires fresh/current-session valid metadata and HANK authority, with 0.5-second age bounds; never recomputes APM hysteresis. Stock Long is inactive, v1 is Legacy, restart reuses Active and waits for valid fresh observations.
+Accepted additive `LongitudinalPlan.hankPersonality @40 :HankPersonalityState` containing version UInt8, base/effective LongitudinalPersonality, apmEnabled Bool, applies Bool and selfdriveStateMonoTime UInt64 (nested ordinals 0..5). Existing Event timestamp and modelMonoTime provide remaining freshness evidence. Absent/version-zero metadata means unavailable. Sole producer is planner; sole purpose is display; no control algorithms change. UI requires fresh/current-session valid metadata and HANK authority, with 0.5-second age bounds; never recomputes APM hysteresis. Stock Long is inactive, v1 is Legacy, restart reuses Active and waits for valid fresh observations.
 
-The [complete schema, compatibility review, alternatives and test contract](docs/hank/evidence/2026-11-10/fix-ui-02-review/README.md) is pending approval. No schema slot is reserved by this proposal, no production implementation has occurred, and no release/C3X authorization is implied.
+Historical provenance: the [complete schema, compatibility review, alternatives and test contract](docs/hank/evidence/2026-11-10/fix-ui-02-review/README.md) was proposed in `b4980601b8cdbce109b5f8b46cf3d0200670d4bc` and awaited approval at that time. The subsequent explicit user approval accepts that exact interface and its tests; the historical review is retained unchanged. Slot @40 was rechecked free before implementation. [FIX-UI-02 implementation evidence](docs/hank/evidence/2026-11-10/fix-ui-02/README.md) records the local software checkpoint. No release/C3X authorization is implied.

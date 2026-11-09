@@ -315,3 +315,14 @@ Phase 1 is complete when:
 - HANK/TSS desired mode can be changed through a safe Offroad->Onroad cycle without requiring a full C3X reboot, subject to successful real-car validation.
 - HANK feature-off behavior has no unexplained regression from A.
 - All Critical test-matrix items required for the release stage pass.
+
+
+## 12. D-026 — Planner-effective personality display (accepted 2026-11-10)
+
+D-023 still owns Requested/Active/base and APM behavior. D-026 adds display-only `LongitudinalPlan.hankPersonality @40`, nested version UInt8 @0, base/effective LongitudinalPersonality @1/@2, apmEnabled Bool @3, applies Bool @4, selfdriveStateMonoTime UInt64 @5. Existing ordinals/enums/topics are unchanged; no deprecated field is repurposed.
+
+Planner alone publishes version 1 after a completed update, capturing the exact base/effective personality used by MPC weights/update. Clear the snapshot before each new update so an incomplete update cannot republish previous metadata. APM executes once; no control input, CFG authority or algorithm change. `applies` is CP.openpilotLongitudinalControl.
+
+UI requires verified active HANK ownership, valid Active/latch, seen/valid plan, supported version, known enums, applies, and positive nonfuture plan/model/selfdriveState timestamps no older than 0.5 seconds and not before the current onroad UI epoch. For v2, base must match Active; v1 remains Legacy. Missing/old/version-zero/unknown/corrupt/stale/old-session/contradictory OFF observations show unavailable, not an inferred OFF or Aggressive default. TSS shows APM inactive. Valid enabled different-effective shows the planner's effective enum; equal-effective shows no override. No UI hysteresis calculation or cached override.
+
+Same-session restart reuses Active but freshly computes APM through the existing planner. Requested edits remain pending and independent. FIX-UI-01 request-time coordinator authority and reboot failure recovery remain unchanged. Desktop evidence is scoped to the actual rendered HUD, synthetic topics and isolated Params; it does not establish C3X, localization or vehicle acceptance. See [implementation evidence](docs/hank/evidence/2026-11-10/fix-ui-02/README.md).

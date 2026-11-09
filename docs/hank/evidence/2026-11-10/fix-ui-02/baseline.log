@@ -1,0 +1,50 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_effective_override_reaches_published_plan_and_ui[normal] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-hank/pytest-8/test_effective_override_reache0')
+profile = 'normal'
+
+    @pytest.mark.parametrize("profile", ["normal", "comfortable"])
+    def test_effective_override_reaches_published_plan_and_ui(tmp_path, profile):
+      params = Params(str(tmp_path))
+      cfg.save_profile(params, profile)
+      active = cfg.initialize_session(params).config
+      base = cfg.base_personality(active)
+      planner = make_planner()
+      raw = publish(planner, base)
+      with log.Event.from_bytes(raw) as event:
+>       assert 'hankPersonality' in event.longitudinalPlan.to_dict(), 'D-026 missing effective personality publication'
+E       AssertionError: D-026 missing effective personality publication
+E       assert 'hankPersonality' in {'aCruiseDEPRECATED': 0.0, 'aStartDEPRECATED': 0.0, 'aTarget': 0.08224696666002274, 'aTargetMaxDEPRECATED': 0.0, ...}
+E        +  where {'aCruiseDEPRECATED': 0.0, 'aStartDEPRECATED': 0.0, 'aTarget': 0.08224696666002274, 'aTargetMaxDEPRECATED': 0.0, ...} = to_dict()
+E        +    where to_dict = <log.capnp:LongitudinalPlan reader (lateralValidDEPRECATED = false, longitudinalValidDEPRECATED = false, vTargetDEPREC...cutionTime = 0.000197, personalityDEPRECATED = aggressive, shouldStop = true, allowThrottle = true, allowBrake = true)>.to_dict
+E        +      where <log.capnp:LongitudinalPlan reader (lateralValidDEPRECATED = false, longitudinalValidDEPRECATED = false, vTargetDEPREC...cutionTime = 0.000197, personalityDEPRECATED = aggressive, shouldStop = true, allowThrottle = true, allowBrake = true)> = <log.capnp:Event reader (logMonoTime = 11000000000, longitudinalPlan = (lateralValidDEPRECATED = false, longitudinalVa...000197, personalityDEPRECATED = aggressive, shouldStop = true, allowThrottle = true, allowBrake = true), valid = true)>.longitudinalPlan
+
+selfdrive/ui/tests/test_hank_personality.py:54: AssertionError
+______ test_effective_override_reaches_published_plan_and_ui[comfortable] ______
+
+tmp_path = PosixPath('/tmp/pytest-of-hank/pytest-8/test_effective_override_reache1')
+profile = 'comfortable'
+
+    @pytest.mark.parametrize("profile", ["normal", "comfortable"])
+    def test_effective_override_reaches_published_plan_and_ui(tmp_path, profile):
+      params = Params(str(tmp_path))
+      cfg.save_profile(params, profile)
+      active = cfg.initialize_session(params).config
+      base = cfg.base_personality(active)
+      planner = make_planner()
+      raw = publish(planner, base)
+      with log.Event.from_bytes(raw) as event:
+>       assert 'hankPersonality' in event.longitudinalPlan.to_dict(), 'D-026 missing effective personality publication'
+E       AssertionError: D-026 missing effective personality publication
+E       assert 'hankPersonality' in {'aCruiseDEPRECATED': 0.0, 'aStartDEPRECATED': 0.0, 'aTarget': 0.08224696666002274, 'aTargetMaxDEPRECATED': 0.0, ...}
+E        +  where {'aCruiseDEPRECATED': 0.0, 'aStartDEPRECATED': 0.0, 'aTarget': 0.08224696666002274, 'aTargetMaxDEPRECATED': 0.0, ...} = to_dict()
+E        +    where to_dict = <log.capnp:LongitudinalPlan reader (lateralValidDEPRECATED = false, longitudinalValidDEPRECATED = false, vTargetDEPREC...cutionTime = 0.000181, personalityDEPRECATED = aggressive, shouldStop = true, allowThrottle = true, allowBrake = true)>.to_dict
+E        +      where <log.capnp:LongitudinalPlan reader (lateralValidDEPRECATED = false, longitudinalValidDEPRECATED = false, vTargetDEPREC...cutionTime = 0.000181, personalityDEPRECATED = aggressive, shouldStop = true, allowThrottle = true, allowBrake = true)> = <log.capnp:Event reader (logMonoTime = 11000000000, longitudinalPlan = (lateralValidDEPRECATED = false, longitudinalVa...000181, personalityDEPRECATED = aggressive, shouldStop = true, allowThrottle = true, allowBrake = true), valid = true)>.longitudinalPlan
+
+selfdrive/ui/tests/test_hank_personality.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED selfdrive/ui/tests/test_hank_personality.py::test_effective_override_reaches_published_plan_and_ui[normal]
+FAILED selfdrive/ui/tests/test_hank_personality.py::test_effective_override_reaches_published_plan_and_ui[comfortable]
+2 failed in 0.35s
