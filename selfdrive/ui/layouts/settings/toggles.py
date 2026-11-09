@@ -7,7 +7,7 @@ from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult
 from openpilot.selfdrive.ui.ui_state import ui_state
-from openpilot.selfdrive.ui.hank_owner import HankOwnerUIModel
+from openpilot.selfdrive.ui.hank_owner import HankOwnerUIModel, owner_ui_evidence
 from openpilot.selfdrive.ui.hank_profile import HankProfileUIModel
 from openpilot.selfdrive.ui.reboot import show_reboot_confirmation
 from openpilot.selfdrive.controls.lib.hank_config import ReadState, REQUESTED, read_config
@@ -106,7 +106,7 @@ class TogglesLayout(Widget):
     }
 
     self._hank_profile = HankProfileUIModel(self._params)
-    self._hank_owner = HankOwnerUIModel(self._params)
+    self._hank_owner = HankOwnerUIModel(self._params, observer=lambda: owner_ui_evidence(ui_state.sm))
     self._profile_error = None
     self._owner_selector = button_item(
       lambda: tr("Longitudinal owner"),
@@ -203,6 +203,8 @@ class TogglesLayout(Widget):
 
   def _owner_status(self):
     view = self._owner_view()
+    if view.visible and not view.action_enabled:
+      return view.detail
     return f"{view.status} | {view.detail}" if view.visible else tr("Owner selector unavailable")
 
   def _owner_description(self):
@@ -234,11 +236,12 @@ class TogglesLayout(Widget):
 
   def _profile_status(self):
     owner_view = self._owner_view()
-    hank_active = owner_view.state == "CURRENT_HANK" if owner_view.visible else ui_state.has_longitudinal_control
+    hank_active = owner_view.hank_profile_active if owner_view.visible else ui_state.has_longitudinal_control
     state = self._hank_profile.state(hank_active)
-    if owner_view.state == "CURRENT_HANK":
+    if owner_view.hank_profile_active:
       owner = tr("HANK owns longitudinal")
-    elif owner_view.state == "CURRENT_TSS":
+    elif (owner_view.current_owner == "TSS" and owner_view.profile_role == "stored_future"
+          and owner_view.state.startswith(("CURRENT_", "BLOCKED_", "TRANSPORT_"))):
       owner = tr("TSS owns longitudinal; HANK stored for future use")
     else:
       owner = tr("Longitudinal owner unverified; HANK profile is not active")
@@ -247,7 +250,7 @@ class TogglesLayout(Widget):
 
   def _refresh_profile(self):
     owner_view = self._owner_view()
-    hank_active = owner_view.state == "CURRENT_HANK" if owner_view.visible else ui_state.has_longitudinal_control
+    hank_active = owner_view.hank_profile_active if owner_view.visible else ui_state.has_longitudinal_control
     state = self._hank_profile.state(hank_active)
     requested = read_config(self._params, REQUESTED)
     index = (self._profile_modes.index(requested.value.hank_profile)

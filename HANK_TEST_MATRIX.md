@@ -537,3 +537,21 @@ Runtime under audit: `b35a4c1bdbe83468690935cf08d6c3e8d0174855`. Evidence: [audi
 | C3X / stationary Sienna / V1-V3 | NOT RUN | Software results do not grant device or vehicle approval |
 
 Prior B2/UI PASS remains historical evidence for those executed tests, not blanket compliance. See the execution plan for ordered correction gates. D-025 tolerances, seven-parameter solver ownership, D-022 bench-seed classification and P0 trust boundaries remain unchanged.
+
+
+## 20. FIX-UI-01 correction — 2026-11-10
+
+Supersedes the blocked/unavailable and corrective-recovery OPEN rows in the earlier same-day audit for software scope only. Base `fb25d6c385e0373da9410a5b005555cfdfdc5e12`. [Commands, raw logs and actual desktop screenshots](docs/hank/evidence/2026-11-10/fix-ui-01/README.md).
+
+| Gate | Result | Boundary |
+|---|---|---|
+| Independent D-024 baseline assertion | EXPECTED FAIL: 4 | Real temporary Params; blocked/stale/unavailable/timeout all incorrectly enabled before source fix |
+| Owner model/wiring/service/coordinator + CFG/profile | PASS: 342 / 34.02 s | 51 new recovery cases; genuine socket/coordinator coverage; no automatic retry or UI owner/cycle writes |
+| Final affected UI suites | PASS: 84 / 3.66 s | Recovery/model/wiring after final wording/layout; full control regression deferred to VERIFY-RC-02 |
+| Actual desktop owner HUD/settings/dialog | PASS within tested scope | Raylib/Xvfb, synthetic Cereal/native temporary Params, mouse interactions; reasons, disable/recover, confirmation race, failure/reboot |
+| Changed production/test Ruff | PASS: exit 0 | No new diagnostic; unrelated repo-wide baseline debt remains |
+| Diff check | PASS: exit 0 | UI model/callers/tests and handoff evidence only |
+| Localization / full app / C3X | OPEN | English-font probe shows existing Chinese profile labels as `??`; no C3X claim |
+| FIX-UI-02 / VERIFY-RC-02 | NOT RUN | APM effective signal and full release regression/build remain next stages |
+
+Recovery uses fresh existing vehicle/manager observations and a non-sending socket connect; it restores manual UI eligibility only. Coordinator fresh recheck, failed-state reboot semantics, Params schema, P0 and seven-parameter MPC remain unchanged. No new release approval.

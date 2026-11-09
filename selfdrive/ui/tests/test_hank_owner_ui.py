@@ -8,6 +8,7 @@ from openpilot.common.params import Params
 from openpilot.selfdrive.controls.lib.hank_config import initialize_session
 from openpilot.selfdrive.selfdrived import hank_owner as ho
 from openpilot.selfdrive.ui.hank_owner import HankOwnerUIModel
+from openpilot.selfdrive.selfdrived.tests.test_hank_owner import observation
 
 
 BOOT = "11111111-2222-3333-4444-555555555555"
@@ -18,6 +19,7 @@ def cp_for(owner="HANK", supported=True):
   cp.brand = "toyota" if supported else "honda"
   cp.carFingerprint = ho.TARGET_CAR if supported else "unsupported"
   cp.openpilotLongitudinalControl = owner == "HANK"
+  cp.safetyConfigs = [{"safetyModel": "toyota", "safetyParam": 512 if owner == "TSS" else 0}]
   return cp
 
 
@@ -40,7 +42,10 @@ def rig(tmp_path):
     calls.append((target, timeout))
     return {"result": "REQUESTED", "reason": "CYCLING"}
 
-  return params, calls, HankOwnerUIModel(params, requester=request)
+  evidence = observation()
+  evidence.samples["managerState"] = ho.Sample(None, evidence.now_ns, True)
+  return params, calls, HankOwnerUIModel(params, requester=request, observer=lambda: evidence,
+                                        transport_available=lambda _: True, clock_ns=lambda: evidence.now_ns)
 
 
 @pytest.mark.parametrize(("owner", "visible_state", "target", "profile_role"), [
@@ -124,7 +129,7 @@ def test_blocked_response_is_presented_without_retry(rig, result, expected):
   view = ui.state(cp_for("HANK"))
   assert view.state == result
   assert expected in view.detail
-  assert view.action_enabled  # A later manual request is allowed; there is no automatic retry.
+  assert not view.action_enabled  # Requires newer safe evidence before a new manual confirmation.
   assert not view.retry_available
 
 

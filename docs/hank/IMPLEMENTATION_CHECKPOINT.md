@@ -169,3 +169,10 @@ Audited runtime baseline: b35a4c1bdbe83468690935cf08d6c3e8d0174855. RC1 and mirr
 The new execution authority is [HANK_EXECUTION_PLAN.md](../../HANK_EXECUTION_PLAN.md); the single current continuation pointer is [CURRENT_STATE.md](CURRENT_STATE.md). GOV-01 adds the plan, root instructions, history preservation and durable [audit evidence](evidence/2026-11-10/README.md), with no runtime change.
 
 Fresh suites/build passed within their tested scope, but UI compliance is OPEN: blocked/unavailable actions stay enabled contrary to D-024, and APM override display observes base rather than planner effective personality. Prior UI PASS is not proof these requirements are satisfied. FIX-UI-01 is the first runtime correction; FIX-UI-02 follows. C3X/vehicle/release remain unvalidated. Do not move RC1 refs or reuse old PORT-01-only requirements against the current seven-parameter MPC.
+
+
+## FIX-UI-01 local correction — 2026-11-10
+
+Base `fb25d6c385e0373da9410a5b005555cfdfdc5e12`; user authorized owner blocked/unavailable action repair, tests, handoff and one local checkpoint. Completed model + HUD/settings fix and 51 new regression cases. Baseline independent proof: 4 expected failures. Final relevant suites: 342 passed / 34.02 s; after final text wrapping, actual desktop owner surface render/mouse probe and 7 wiring tests passed; final timeout wording was followed by 84 affected UI tests passing in 3.66 s. Changed-source/test Ruff and diff check pass. [Full evidence and recovery contract](evidence/2026-11-10/fix-ui-01/README.md).
+
+Fresh safe vehicle/manager timestamps and non-sending coordinator socket availability restore a manual confirmation; never replay the rejected target. Real coordinator still rechecks independently. No coordinator protocol/state-machine/schema change, no longitudinal/P0/solver modification. RC1 refs unchanged, no push/device action. Desktop English owner UI acceptance is bounded; Chinese labels under the probe font, full app and C3X remain open. Single current NEXT is FIX-UI-02 in CURRENT_STATE; full build/regression belongs to VERIFY-RC-02.

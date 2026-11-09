@@ -1,0 +1,76 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_rejected_action_stays_disabled_without_new_safe_evidence[BLOCKED_ENGAGED] _
+
+rig = (<common.params_pyx.Params object at 0x7c91a4819d30>, [], <openpilot.selfdrive.ui.hank_owner.HankOwnerUIModel object at 0x7c91a4867bc0>)
+result = 'BLOCKED_ENGAGED'
+
+    @pytest.mark.parametrize("result", ["BLOCKED_ENGAGED", "BLOCKED_STALE_OR_INVALID", "TRANSPORT_UNAVAILABLE", "TRANSPORT_TIMEOUT"])
+    def test_rejected_action_stays_disabled_without_new_safe_evidence(rig, result):
+      params, calls, ui = rig
+      put_authority(params, transaction())
+      ui.last_result = result
+      view = ui.state(cp_for())
+>     assert not view.action_enabled, f"D-024 requires disabled action for {result}"
+E     AssertionError: D-024 requires disabled action for BLOCKED_ENGAGED
+E     assert not True
+E      +  where True = HankOwnerDisplay(visible=True, state='BLOCKED_ENGAGED', current_owner='HANK', target_owner=None, status='Owner switch ...SS', action_enabled=True, reboot_available=False, retry_available=False, cancel_available=False, profile_role='active').action_enabled
+
+selfdrive/ui/tests/test_hank_owner_recovery.py:13: AssertionError
+_ test_rejected_action_stays_disabled_without_new_safe_evidence[BLOCKED_STALE_OR_INVALID] _
+
+rig = (<common.params_pyx.Params object at 0x7c91a481bb50>, [], <openpilot.selfdrive.ui.hank_owner.HankOwnerUIModel object at 0x7c91a48ab0e0>)
+result = 'BLOCKED_STALE_OR_INVALID'
+
+    @pytest.mark.parametrize("result", ["BLOCKED_ENGAGED", "BLOCKED_STALE_OR_INVALID", "TRANSPORT_UNAVAILABLE", "TRANSPORT_TIMEOUT"])
+    def test_rejected_action_stays_disabled_without_new_safe_evidence(rig, result):
+      params, calls, ui = rig
+      put_authority(params, transaction())
+      ui.last_result = result
+      view = ui.state(cp_for())
+>     assert not view.action_enabled, f"D-024 requires disabled action for {result}"
+E     AssertionError: D-024 requires disabled action for BLOCKED_STALE_OR_INVALID
+E     assert not True
+E      +  where True = HankOwnerDisplay(visible=True, state='BLOCKED_STALE_OR_INVALID', current_owner='HANK', target_owner=None, status='Owne...SS', action_enabled=True, reboot_available=False, retry_available=False, cancel_available=False, profile_role='active').action_enabled
+
+selfdrive/ui/tests/test_hank_owner_recovery.py:13: AssertionError
+_ test_rejected_action_stays_disabled_without_new_safe_evidence[TRANSPORT_UNAVAILABLE] _
+
+rig = (<common.params_pyx.Params object at 0x7c91a48e0230>, [], <openpilot.selfdrive.ui.hank_owner.HankOwnerUIModel object at 0x7c91a48ab2c0>)
+result = 'TRANSPORT_UNAVAILABLE'
+
+    @pytest.mark.parametrize("result", ["BLOCKED_ENGAGED", "BLOCKED_STALE_OR_INVALID", "TRANSPORT_UNAVAILABLE", "TRANSPORT_TIMEOUT"])
+    def test_rejected_action_stays_disabled_without_new_safe_evidence(rig, result):
+      params, calls, ui = rig
+      put_authority(params, transaction())
+      ui.last_result = result
+      view = ui.state(cp_for())
+>     assert not view.action_enabled, f"D-024 requires disabled action for {result}"
+E     AssertionError: D-024 requires disabled action for TRANSPORT_UNAVAILABLE
+E     assert not True
+E      +  where True = HankOwnerDisplay(visible=True, state='TRANSPORT_UNAVAILABLE', current_owner='HANK', target_owner=None, status='Owner s...SS', action_enabled=True, reboot_available=False, retry_available=False, cancel_available=False, profile_role='active').action_enabled
+
+selfdrive/ui/tests/test_hank_owner_recovery.py:13: AssertionError
+_ test_rejected_action_stays_disabled_without_new_safe_evidence[TRANSPORT_TIMEOUT] _
+
+rig = (<common.params_pyx.Params object at 0x7c91a48198d0>, [], <openpilot.selfdrive.ui.hank_owner.HankOwnerUIModel object at 0x7c91a48a89e0>)
+result = 'TRANSPORT_TIMEOUT'
+
+    @pytest.mark.parametrize("result", ["BLOCKED_ENGAGED", "BLOCKED_STALE_OR_INVALID", "TRANSPORT_UNAVAILABLE", "TRANSPORT_TIMEOUT"])
+    def test_rejected_action_stays_disabled_without_new_safe_evidence(rig, result):
+      params, calls, ui = rig
+      put_authority(params, transaction())
+      ui.last_result = result
+      view = ui.state(cp_for())
+>     assert not view.action_enabled, f"D-024 requires disabled action for {result}"
+E     AssertionError: D-024 requires disabled action for TRANSPORT_TIMEOUT
+E     assert not True
+E      +  where True = HankOwnerDisplay(visible=True, state='TRANSPORT_TIMEOUT', current_owner='HANK', target_owner=None, status='Owner switc...SS', action_enabled=True, reboot_available=False, retry_available=False, cancel_available=False, profile_role='active').action_enabled
+
+selfdrive/ui/tests/test_hank_owner_recovery.py:13: AssertionError
+=========================== short test summary info ============================
+FAILED selfdrive/ui/tests/test_hank_owner_recovery.py::test_rejected_action_stays_disabled_without_new_safe_evidence[BLOCKED_ENGAGED]
+FAILED selfdrive/ui/tests/test_hank_owner_recovery.py::test_rejected_action_stays_disabled_without_new_safe_evidence[BLOCKED_STALE_OR_INVALID]
+FAILED selfdrive/ui/tests/test_hank_owner_recovery.py::test_rejected_action_stays_disabled_without_new_safe_evidence[TRANSPORT_UNAVAILABLE]
+FAILED selfdrive/ui/tests/test_hank_owner_recovery.py::test_rejected_action_stays_disabled_without_new_safe_evidence[TRANSPORT_TIMEOUT]
+4 failed in 0.26s
